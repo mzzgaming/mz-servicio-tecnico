@@ -1,6 +1,6 @@
 # MZ GAMING — Sistema de Servicio Técnico
 
-Panel web + Bot Telegram para gestión de órdenes de trabajo.
+Panel web + Bot Telegram para gestión de órdenes de trabajo. v1.1
 
 ---
 
