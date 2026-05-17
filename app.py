@@ -262,6 +262,15 @@ def webhook(secret):
 
     return jsonify({"ok": True})
 
+# ─── DEBUG ─────────────────────────────────────────────────────────────────────
+@app.route("/debug/files")
+def debug_files():
+    file_list = []
+    for root, dirs, files in os.walk("/app"):
+        for f in files:
+            file_list.append(os.path.join(root, f))
+    return jsonify({"base": "/app", "files": sorted(file_list)})
+
 # ─── SETUP ─────────────────────────────────────────────────────────────────────
 @app.route("/setup-webhook")
 def setup():
