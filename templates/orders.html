@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MZ GAMING — Órdenes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c10; --surface:#111318; --border:#1e2230;
+    --accent:#00e5ff; --danger:#ff4757; --success:#00c853; --warn:#ffab00;
+    --text:#e8eaf0; --muted:#5a6080; --radius:10px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:linear-gradient(rgba(0,229,255,.025)1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.025)1px,transparent 1px);
+    background-size:40px 40px;}
+
+  .layout{display:flex;min-height:100vh;position:relative;z-index:1;}
+  .sidebar{width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:28px 0;}
+  .logo{padding:0 24px 28px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+  .logo-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--accent);line-height:1;}
+  .logo-sub{font-size:10px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:2px;}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:12px 24px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500;transition:all .18s;border-left:3px solid transparent;text-decoration:none;}
+  .nav-item:hover{color:var(--text);background:rgba(255,255,255,.04);}
+  .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,229,255,.06);}
+  .nav-icon{width:18px;height:18px;}
+  .main{flex:1;padding:36px 40px;overflow-y:auto;}
+  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+  .page-header h1{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1.5px;}
+  .header-right{display:flex;gap:10px;align-items:center;}
+
+  /* FILTROS */
+  .filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .filter-btn{padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .18s;}
+  .filter-btn:hover{color:var(--text);border-color:#444;}
+  .filter-btn.active{background:var(--accent);color:#001a1f;border-color:var(--accent);font-weight:600;}
+
+  /* STATS */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;}
+  .stat-val{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;}
+  .stat-lbl{font-size:12px;color:var(--muted);margin-top:2px;}
+  .stat-card.pend .stat-val{color:var(--warn);}
+  .stat-card.list .stat-val{color:var(--success);}
+  .stat-card.alta .stat-val{color:var(--danger);}
+  .stat-card.total .stat-val{color:var(--accent);}
+
+  /* TABLA */
+  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  thead tr{border-bottom:1px solid var(--border);}
+  thead th{padding:14px 16px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;}
+  tbody tr{border-bottom:1px solid rgba(30,34,48,.6);transition:background .15s;cursor:default;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,.03);}
+  tbody td{padding:14px 16px;font-size:14px;vertical-align:middle;}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+  .badge-pend{background:rgba(255,171,0,.1);color:var(--warn);border:1px solid rgba(255,171,0,.2);}
+  .badge-list{background:rgba(0,200,83,.1);color:var(--success);border:1px solid rgba(0,200,83,.2);}
+  .badge-alta{background:rgba(255,71,87,.1);color:var(--danger);border:1px solid rgba(255,71,87,.2);}
+  .badge-norm{background:rgba(255,171,0,.08);color:var(--warn);border:1px solid rgba(255,171,0,.15);}
+  .badge-baja{background:rgba(0,200,83,.08);color:var(--success);border:1px solid rgba(0,200,83,.15);}
+
+  .id-cell{font-family:monospace;font-size:13px;color:var(--accent);font-weight:600;}
+  .tecnico-cell{color:var(--muted);font-size:13px;}
+
+  .empty{text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty-icon{font-size:40px;margin-bottom:12px;}
+
+  .btn-refresh{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:6px;}
+  .btn-refresh:hover{color:var(--text);border-color:#444;}
+
+  .loading{text-align:center;padding:60px;color:var(--muted);}
+  .spin{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-title">MZ GAMING</div>
+      <div class="logo-sub">Servicio Técnico</div>
+    </div>
+    <a href="/" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Nueva orden
+    </a>
+    <a href="/orders" class="nav-item active">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Ver órdenes
+    </a>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1>Órdenes de Trabajo</h1>
+      </div>
+      <div class="header-right">
+        <button class="btn-refresh" onclick="loadOrders()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Actualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-card total"><div class="stat-val" id="s-total">—</div><div class="stat-lbl">Total órdenes</div></div>
+      <div class="stat-card pend"><div class="stat-val" id="s-pend">—</div><div class="stat-lbl">Pendientes</div></div>
+      <div class="stat-card list"><div class="stat-val" id="s-list">—</div><div class="stat-lbl">Listas</div></div>
+      <div class="stat-card alta"><div class="stat-val" id="s-alta">—</div><div class="stat-lbl">Alta prioridad</div></div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('todas',this)">Todas</button>
+      <button class="filter-btn" onclick="setFilter('pendiente',this)">🟡 Pendientes</button>
+      <button class="filter-btn" onclick="setFilter('lista',this)">✅ Listas</button>
+      <button class="filter-btn" onclick="setFilter('alta',this)">🔴 Alta prioridad</button>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-wrap">
+      <div id="tableContent" class="loading"><div class="spin"></div></div>
+    </div>
+  </main>
+</div>
+
+<script>
+let allOrders = [];
+let currentFilter = 'todas';
+
+async function loadOrders() {
+  document.getElementById('tableContent').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  try {
+    const res = await fetch('/api/orders');
+    const json = await res.json();
+    if (json.ok) {
+      allOrders = json.orders;
+      updateStats();
+      renderTable();
+    }
+  } catch(e) {
+    document.getElementById('tableContent').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>Error al cargar órdenes</div>';
+  }
+}
+
+function updateStats() {
+  const pend = allOrders.filter(o => o.Estado && o.Estado.includes('Pendiente')).length;
+  const list = allOrders.filter(o => o.Estado && o.Estado.includes('Lista')).length;
+  const alta = allOrders.filter(o => o.Prioridad === 'Alta').length;
+  document.getElementById('s-total').textContent = allOrders.length;
+  document.getElementById('s-pend').textContent  = pend;
+  document.getElementById('s-list').textContent  = list;
+  document.getElementById('s-alta').textContent  = alta;
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  let orders = allOrders;
+  if (currentFilter === 'pendiente') orders = orders.filter(o => o.Estado && o.Estado.includes('Pendiente'));
+  if (currentFilter === 'lista')     orders = orders.filter(o => o.Estado && o.Estado.includes('Lista'));
+  if (currentFilter === 'alta')      orders = orders.filter(o => o.Prioridad === 'Alta');
+
+  if (!orders.length) {
+    document.getElementById('tableContent').innerHTML = '<div class="empty"><div class="empty-icon">📋</div>No hay órdenes para este filtro</div>';
+    return;
+  }
+
+  const rows = orders.map(o => {
+    const estadoBadge = o.Estado && o.Estado.includes('Lista')
+      ? `<span class="badge badge-list">${o.Estado}</span>`
+      : `<span class="badge badge-pend">${o.Estado || '🟡 Pendiente'}</span>`;
+
+    const prioBadge = o.Prioridad === 'Alta'
+      ? `<span class="badge badge-alta">🔴 Alta</span>`
+      : o.Prioridad === 'Baja'
+        ? `<span class="badge badge-baja">🟢 Baja</span>`
+        : `<span class="badge badge-norm">🟡 Normal</span>`;
+
+    return `<tr>
+      <td class="id-cell">${o.ID}</td>
+      <td>${o.Cliente}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.Componentes}</td>
+      <td>${o.Trabajo}</td>
+      <td>${o['Fecha Entrega'] || o.Fecha || '—'}</td>
+      <td>${prioBadge}</td>
+      <td>${estadoBadge}</td>
+      <td class="tecnico-cell">${o['Técnico'] || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tableContent').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Cliente</th><th>Componentes</th><th>Trabajo</th>
+          <th>Entrega</th><th>Prioridad</th><th>Estado</th><th>Técnico</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+loadOrders();
+setInterval(loadOrders, 30000); // auto-refresh cada 30s
+</script>
+</body>
+</html>
