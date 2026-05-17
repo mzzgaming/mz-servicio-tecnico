@@ -10,10 +10,10 @@ import requests
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates"))
 
 # ─── USUARIOS ─────────────────────────────────────────────────────────────────
-ADMIN_IDS = {3875706314, 3872510080}  # Martin y MZ Gaming (admins)
+ADMIN_IDS = {909301871, 3872510080}  # Martin y MZ Gaming (admins)
 
 TECHNICIANS = {
-    3875706314: "Martin",
+    909301871: "Martin",
     3872510080: "MZ Gaming",
     3875634870: "Alvaro",
     3876137034: "Adrian",
