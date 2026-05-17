@@ -164,8 +164,8 @@ def webhook(secret):
                         send_telegram(chat_id, f"ℹ️ La orden `{order_id}` ya estaba marcada como lista.")
                         break
                     now = datetime.now().strftime("%d/%m/%Y %H:%M")
-                    sheet.update_cell(i, 9,  "✅ Lista")
-                    sheet.update_cell(i, 10, user)
+                    sheet.update_cell(i, 8,  "✅ Lista")
+                    sheet.update_cell(i, 9,  user)
                     sheet.update_cell(i, 11, now)
                     send_telegram(chat_id,
                         f"✅ Orden *{order_id}* marcada como lista.\n"
@@ -236,7 +236,7 @@ def webhook(secret):
                 records = sheet.get_all_records()
                 for i, row in enumerate(records, start=2):
                     if row.get("ID", "").upper() == order_id:
-                        sheet.update_cell(i, 9, "❌ Cancelada")
+                        sheet.update_cell(i, 8, "❌ Cancelada")
                         send_telegram(chat_id, f"🗑️ Orden *{order_id}* cancelada.")
                         broadcast(f"❌ Orden *{order_id}* cancelada por Martin.", exclude=chat_id)
                         break
