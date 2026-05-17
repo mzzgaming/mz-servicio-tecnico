@@ -124,7 +124,7 @@ def create_order():
         )
         if notas:
             msg += f"📝 *Notas:* {notas}\n"
-        msg += f"\nPara marcar como lista: `/lista {order_id}`"
+        msg += f"\nPara marcar como lista: `/lista {cliente}`"
 
         broadcast(msg)
 
@@ -150,26 +150,24 @@ def webhook(secret):
         send_telegram(chat_id, "❌ No tenés acceso a este bot.")
         return jsonify({"ok": True})
 
-    # ── /lista ORD-XXX ──────────────────────────────────────────────────────
+    # ── /lista <nombre cliente> ─────────────────────────────────────────────
     if text.startswith("/lista "):
-        order_id = text.split(" ", 1)[1].strip().upper()
+        nombre = text.split(" ", 1)[1].strip()
         try:
             sheet   = get_sheet()
             records = sheet.get_all_records()
             found   = False
             for i, row in enumerate(records, start=2):
-                if row.get("ID", "").upper() == order_id:
+                if row.get("Cliente", "").lower() == nombre.lower() and "Pendiente" in row.get("Estado", ""):
                     found = True
-                    if "Lista" in row.get("Estado", ""):
-                        send_telegram(chat_id, f"ℹ️ La orden `{order_id}` ya estaba marcada como lista.")
-                        break
+                    order_id = row.get("ID", "")
                     now = datetime.now().strftime("%d/%m/%Y %H:%M")
                     sheet.update_cell(i, 8,  "✅ Lista")
                     sheet.update_cell(i, 9,  user)
                     sheet.update_cell(i, 11, now)
                     send_telegram(chat_id,
-                        f"✅ Orden *{order_id}* marcada como lista.\n"
-                        f"Cliente: *{row.get('Cliente')}*"
+                        f"✅ Orden *{order_id}* de *{row.get('Cliente')}* marcada como lista.\n"
+                        f"🛠️ Trabajo: {row.get('Trabajo')}"
                     )
                     broadcast(
                         f"✅ *{order_id}* lista\n"
@@ -180,7 +178,7 @@ def webhook(secret):
                     )
                     break
             if not found:
-                send_telegram(chat_id, f"❌ No encontré la orden `{order_id}`. Verificá el ID.")
+                send_telegram(chat_id, f"❌ No encontré una orden pendiente para *{nombre}*.")
         except Exception as e:
             send_telegram(chat_id, f"⚠️ Error: {e}")
 
@@ -250,14 +248,14 @@ def webhook(secret):
             f"🔧 *MZ GAMING — Servicio Técnico*\n\n"
             f"Comandos disponibles:\n"
             f"`/ordenes` — Ver órdenes pendientes\n"
-            f"`/lista ORD\\-001` — Marcar orden como lista\n"
+            f"`/lista Martin Morales` — Marcar orden del cliente como lista\n"
             f"`/help` — Ver esta ayuda\n"
         )
         if is_admin:
             base_cmds += (
                 f"\n👑 *Comandos de admin:*\n"
                 f"`/resumen` — Ver estadísticas generales\n"
-                f"`/cancelar ORD\\-001` — Cancelar una orden\n"
+                f"`/cancelar ORD\\-001` — Cancelar una orden por ID\n"
             )
         send_telegram(chat_id, base_cmds)
 
