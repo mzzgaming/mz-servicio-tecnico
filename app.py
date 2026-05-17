@@ -6,7 +6,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 import requests
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates"))
 
 # ─── USUARIOS ─────────────────────────────────────────────────────────────────
 ADMIN_IDS = {3875706314, 3872510080}  # Martin y MZ Gaming (admins)
