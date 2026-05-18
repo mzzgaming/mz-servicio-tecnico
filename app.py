@@ -124,7 +124,7 @@ def create_order():
         )
         if notas:
             msg += f"📝 *Notas:* {notas}\n"
-        msg += f"\nPara marcar como lista: `/lista {cliente}`"
+        msg += f"\nPara marcar como lista: `/lista {cliente}`\nVer todos los comandos: /ayuda"
 
         broadcast(msg)
 
@@ -241,23 +241,25 @@ def webhook(secret):
             except Exception as e:
                 send_telegram(chat_id, f"⚠️ Error: {e}")
 
-    # ── /help o /start ───────────────────────────────────────────────────────
-    elif text in ("/help", "/start"):
+    # ── /ayuda, /help, /start ────────────────────────────────────────────────
+    elif text in ("/ayuda", "/help", "/start"):
         base_cmds = (
             f"👋 Hola *{user}*\\!\n\n"
             f"🔧 *MZ GAMING — Servicio Técnico*\n\n"
-            f"Comandos disponibles:\n"
-            f"`/ordenes` — Ver órdenes pendientes\n"
-            f"`/lista Martin Morales` — Marcar orden del cliente como lista\n"
-            f"`/help` — Ver esta ayuda\n"
+            f"📋 *Comandos disponibles:*\n"
+            f"━━━━━━━━━━━━━━━━━\n"
+            f"`/ordenes` — Ver todas las órdenes pendientes\n"
+            f"`/lista Nombre Cliente` — Marcar la orden de un cliente como lista\n"
+            f"`/ayuda` — Mostrar esta ayuda\n"
         )
         if is_admin:
             base_cmds += (
                 f"\n👑 *Comandos de admin:*\n"
+                f"━━━━━━━━━━━━━━━━━\n"
                 f"`/resumen` — Ver estadísticas generales\n"
                 f"`/cancelar ORD\\-001` — Cancelar una orden por ID\n"
             )
-        send_telegram(chat_id, base_cmds)
+        send_telegram(chat_id, base_cmds, parse_mode="MarkdownV2")
 
     return jsonify({"ok": True})
 
