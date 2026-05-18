@@ -1,4 +1,3 @@
-# Force rebuild: 2026-05-18c
 import os
 import json
 from datetime import datetime
@@ -54,14 +53,8 @@ def send_telegram(chat_id, text, parse_mode="Markdown"):
     payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
     try:
         r = requests.post(url, json=payload, timeout=10)
-        result = r.json()
-        if not result.get("ok"):
-            print(f"[Telegram error] chat_id={chat_id} status={r.status_code} response={result}", flush=True)
-        else:
-            print(f"[Telegram ok] chat_id={chat_id} message_id={result.get('result',{}).get('message_id')}", flush=True)
-        return result
-    except Exception as e:
-        print(f"[Telegram exception] {e}", flush=True)
+        return r.json()
+    except Exception:
         return {}
 
 def broadcast(text, exclude=None):
@@ -74,8 +67,7 @@ def broadcast(text, exclude=None):
 def set_webhook(base_url):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook"
     webhook_url = f"{base_url}/webhook/{WEBHOOK_SECRET}"
-    r = requests.post(url, json={"url": webhook_url})
-    print(f"[Webhook] {r.json()}")
+    requests.post(url, json={"url": webhook_url})
 
 # ─── RUTAS WEB ─────────────────────────────────────────────────────────────────
 @app.route("/")
@@ -146,12 +138,10 @@ def webhook(secret):
     text    = message.get("text", "").split("@")[0]  # strip @botname suffix in groups
     chat_id = message.get("chat", {}).get("id")
     user_id = int(message.get("from", {}).get("id", 0))
-    print(f"[WEBHOOK] user_id={user_id} text={text!r} chat_id={chat_id}", flush=True)
     user    = TECHNICIANS.get(user_id, message.get("from", {}).get("first_name", "Técnico"))
     is_admin = (user_id in ADMIN_IDS)
 
     if user_id not in TECHNICIANS:
-        send_telegram(chat_id, f"DEBUG: tu user_id es {user_id}")
         return jsonify({"ok": True})
 
     # ── /lista <nombre cliente> ─────────────────────────────────────────────
@@ -266,29 +256,6 @@ def webhook(secret):
         send_telegram(chat_id, base_cmds)
 
     return jsonify({"ok": True})
-
-# ─── DEBUG ─────────────────────────────────────────────────────────────────────
-@app.route("/debug/test-mensaje")
-def debug_test_mensaje():
-    msg = (
-        "👋 Hola *Mz Gaming*\n\n"
-        "🔧 *MZ GAMING — Servicio Técnico*\n\n"
-        "📋 *Comandos disponibles:*\n"
-        "━━━━━━━━━━━━━━━━━\n"
-        "`/ordenes` — Ver todas las órdenes pendientes\n"
-        "`/lista Nombre Cliente` — Marcar la orden de un cliente como lista\n"
-        "`/ayuda` — Mostrar esta ayuda\n"
-    )
-    result = send_telegram(8832743374, msg)
-    return jsonify({"sent": result})
-
-@app.route("/debug/files")
-def debug_files():
-    file_list = []
-    for root, dirs, files in os.walk("/app"):
-        for f in files:
-            file_list.append(os.path.join(root, f))
-    return jsonify({"base": "/app", "files": sorted(file_list)})
 
 # ─── SETUP ─────────────────────────────────────────────────────────────────────
 @app.route("/setup-webhook")
