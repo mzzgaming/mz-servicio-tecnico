@@ -19,9 +19,10 @@ TECHNICIANS = {
 ALL_CHAT_IDS = list(TECHNICIANS.keys())
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-SHEET_ID       = os.environ.get("SHEET_ID", "")
-BOT_TOKEN      = os.environ.get("BOT_TOKEN", "")
-WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "mzgaming2024")
+SHEET_ID          = os.environ.get("SHEET_ID", "")
+BUSINESS_SHEET_ID = os.environ.get("BUSINESS_SHEET_ID", "1FHEBuzVEkpg_w8dDMP_Y1YeZBtUprtG9")
+BOT_TOKEN         = os.environ.get("BOT_TOKEN", "")
+WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "mzgaming2024")
 
 SCOPES = [
     "https://spreadsheets.google.com/feeds",
@@ -276,23 +277,25 @@ def webhook(secret):
 
     return jsonify({"ok": True})
 
-# ─── SETUP ─────────────────────────────────────────────────────────────────────
-@app.route("/api/sheet-info")
-def sheet_info():
-    creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
-    creds_dict = json.loads(creds_json)
-    creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
-    client = gspread.authorize(creds)
-    sid = request.args.get("id", SHEET_ID)
-    spreadsheet = client.open_by_key(sid)
-    result = {}
-    for ws in spreadsheet.worksheets():
-        all_vals = ws.get_all_values()
-        headers  = all_vals[0] if all_vals else []
-        sample   = all_vals[1:3] if len(all_vals) > 1 else []
-        result[ws.title] = {"headers": headers, "sample_rows": sample}
-    return jsonify(result)
+# ─── BUSINESS SHEETS ───────────────────────────────────────────────────────────
+_BIZ_ALLOWED = {"Ventas", "Stock", "Clientes", "Bancos", "Gastos", "Productos", "Compras", "Resumen"}
 
+@app.route("/api/biz/<sheet_name>")
+def get_biz_sheet(sheet_name):
+    if sheet_name not in _BIZ_ALLOWED:
+        return jsonify({"ok": False, "error": "Hoja no permitida"}), 403
+    try:
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet(sheet_name)
+        records = ws.get_all_records()
+        return jsonify({"ok": True, "data": records})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+# ─── SETUP ─────────────────────────────────────────────────────────────────────
 @app.route("/setup-webhook")
 def setup():
     base_url = request.host_url.rstrip("/")
