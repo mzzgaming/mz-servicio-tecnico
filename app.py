@@ -54,9 +54,14 @@ def send_telegram(chat_id, text, parse_mode="Markdown"):
     payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
     try:
         r = requests.post(url, json=payload, timeout=10)
-        return r.json()
+        result = r.json()
+        if not result.get("ok"):
+            print(f"[Telegram error] chat_id={chat_id} status={r.status_code} response={result}", flush=True)
+        else:
+            print(f"[Telegram ok] chat_id={chat_id} message_id={result.get('result',{}).get('message_id')}", flush=True)
+        return result
     except Exception as e:
-        print(f"[Telegram error] {e}")
+        print(f"[Telegram exception] {e}", flush=True)
         return {}
 
 def broadcast(text, exclude=None):
