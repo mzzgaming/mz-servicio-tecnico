@@ -290,7 +290,27 @@ def get_biz_sheet(sheet_name):
         creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
         client = gspread.authorize(creds)
         ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet(sheet_name)
-        records = ws.get_all_records()
+        rows = ws.get_all_values()
+        if not rows:
+            return jsonify({"ok": True, "data": []})
+        headers = rows[0]
+        # limpiar headers duplicados o vacíos
+        seen = {}
+        clean_headers = []
+        for h in headers:
+            h = h.strip()
+            if not h:
+                h = "_empty"
+            if h in seen:
+                seen[h] += 1
+                h = f"{h}_{seen[h]}"
+            else:
+                seen[h] = 0
+            clean_headers.append(h)
+        records = []
+        for row in rows[1:]:
+            if any(cell.strip() for cell in row):
+                records.append(dict(zip(clean_headers, row)))
         return jsonify({"ok": True, "data": records})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
