@@ -116,12 +116,13 @@ def create_order():
         trabajo     = data.get("trabajo", "").strip()
         fecha       = data.get("fecha", "").strip()
         prioridad   = data.get("prioridad", "Normal").strip()
-        notas       = data.get("notas", "").strip()
-        importe     = data.get("importe", "").strip()
-        created_at  = datetime.now().strftime("%d/%m/%Y %H:%M")
+        notas        = data.get("notas", "").strip()
+        importe      = data.get("importe", "").strip()
+        estado_pago  = data.get("estado_pago", "Pendiente").strip()
+        created_at   = datetime.now().strftime("%d/%m/%Y %H:%M")
 
         row = [order_id, cliente, componentes, trabajo, fecha,
-               prioridad, notas, "🟡 Pendiente", "", created_at, "", importe, ""]
+               prioridad, notas, "🟡 Pendiente", "", created_at, "", importe, estado_pago]
         sheet.append_row(row)
 
         prioridad_emoji = {"Alta": "🔴", "Normal": "🟡", "Baja": "🟢"}.get(prioridad, "🟡")
