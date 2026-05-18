@@ -86,6 +86,24 @@
   .search-input::placeholder{color:var(--muted);}
   .search-input:focus{border-color:var(--accent);}
   .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
+
+  /* VENTAS */
+  .ventas-section{margin-top:48px;}
+  .ventas-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+  .ventas-header h2{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1.5px;}
+  .ventas-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+  .vstat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;}
+  .vstat-val{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;}
+  .vstat-lbl{font-size:12px;color:var(--muted);margin-top:2px;}
+  .vstat-card.v-total .vstat-val{color:var(--accent);}
+  .vstat-card.v-cobrado .vstat-val{color:var(--success);}
+  .vstat-card.v-pend .vstat-val{color:var(--warn);}
+  .pay-select{appearance:none;-webkit-appearance:none;border-radius:20px;padding:5px 12px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;outline:none;border:1px solid transparent;transition:opacity .15s;}
+  .pay-select:hover{opacity:.85;}
+  .pay-select option{background:#111318;color:var(--text);}
+  .st-pendiente{background:rgba(255,171,0,.1);color:var(--warn);border-color:rgba(255,171,0,.2);}
+  .st-pagado{background:rgba(0,200,83,.1);color:var(--success);border-color:rgba(0,200,83,.2);}
+  .st-parcial{background:rgba(0,229,255,.1);color:var(--accent);border-color:rgba(0,229,255,.2);}
 </style>
 </head>
 <body>
@@ -144,6 +162,21 @@
     <div class="table-wrap">
       <div id="tableContent" class="loading"><div class="spin"></div></div>
     </div>
+
+    <!-- VENTAS -->
+    <div class="ventas-section">
+      <div class="ventas-header">
+        <h2>💰 Ventas</h2>
+      </div>
+      <div class="ventas-stats">
+        <div class="vstat-card v-total"><div class="vstat-val" id="v-total">$0</div><div class="vstat-lbl">Total facturado</div></div>
+        <div class="vstat-card v-cobrado"><div class="vstat-val" id="v-cobrado">$0</div><div class="vstat-lbl">Cobrado</div></div>
+        <div class="vstat-card v-pend"><div class="vstat-val" id="v-pend">$0</div><div class="vstat-lbl">Pendiente de cobro</div></div>
+      </div>
+      <div class="table-wrap">
+        <div id="ventasContent" class="loading"><div class="spin"></div></div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -160,6 +193,7 @@ async function loadOrders() {
       allOrders = json.orders;
       updateStats();
       renderTable();
+      renderVentas();
     }
   } catch(e) {
     document.getElementById('tableContent').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>Error al cargar órdenes</div>';
@@ -283,6 +317,78 @@ function editImporte(cell, currentVal) {
       cell.textContent = currentVal !== '' ? `$${Number(currentVal).toLocaleString('es-AR')}` : '—';
     }
   });
+}
+
+function stClass(ep) {
+  if (ep === 'Pagado')      return 'st-pagado';
+  if (ep === 'Pago Parcial') return 'st-parcial';
+  return 'st-pendiente';
+}
+
+function fmtMoney(n) {
+  return '$' + Number(n || 0).toLocaleString('es-AR', {minimumFractionDigits: 0});
+}
+
+function updateVentasStats() {
+  const total    = allOrders.reduce((s, o) => s + Number(o.Importe || 0), 0);
+  const cobrado  = allOrders.filter(o => (o['Estado Pago'] || '') === 'Pagado')
+                            .reduce((s, o) => s + Number(o.Importe || 0), 0);
+  document.getElementById('v-total').textContent   = fmtMoney(total);
+  document.getElementById('v-cobrado').textContent = fmtMoney(cobrado);
+  document.getElementById('v-pend').textContent    = fmtMoney(total - cobrado);
+}
+
+function renderVentas() {
+  updateVentasStats();
+
+  if (!allOrders.length) {
+    document.getElementById('ventasContent').innerHTML = '<div class="empty"><div class="empty-icon">💰</div>No hay órdenes</div>';
+    return;
+  }
+
+  const rows = allOrders.map(o => {
+    const ep  = o['Estado Pago'] || 'Pendiente';
+    const sc  = stClass(ep);
+    const imp = (o.Importe !== undefined && o.Importe !== '') ? fmtMoney(o.Importe) : '—';
+    return `<tr>
+      <td class="id-cell">${o.ID}</td>
+      <td>${o.Cliente}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.Trabajo}</td>
+      <td style="color:var(--success);font-weight:600;font-size:13px">${imp}</td>
+      <td>
+        <select class="pay-select ${sc}" onchange="saveEstadoPago(this,'${o.ID}')">
+          <option value="Pendiente"   ${ep==='Pendiente'?'selected':''}>⏳ Pendiente</option>
+          <option value="Pagado"      ${ep==='Pagado'?'selected':''}>✅ Pagado</option>
+          <option value="Pago Parcial" ${ep==='Pago Parcial'?'selected':''}>🔸 Pago Parcial</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('ventasContent').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>ID</th><th>Cliente</th><th>Trabajo</th><th>Importe</th><th>Estado de Pago</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function saveEstadoPago(select, orderId) {
+  const val = select.value;
+  select.className = 'pay-select ' + stClass(val);
+  const idx = allOrders.findIndex(o => o.ID === orderId);
+  if (idx >= 0) {
+    allOrders[idx]['Estado Pago'] = val;
+    updateVentasStats();
+  }
+  try {
+    await fetch(`/api/orders/${orderId}`, {
+      method: 'PATCH',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({estado_pago: val})
+    });
+  } catch {}
 }
 
 loadOrders();
