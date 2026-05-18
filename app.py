@@ -141,6 +141,7 @@ def webhook(secret):
     text    = message.get("text", "").split("@")[0]  # strip @botname suffix in groups
     chat_id = message.get("chat", {}).get("id")
     user_id = int(message.get("from", {}).get("id", 0))
+    print(f"[WEBHOOK] user_id={user_id} text={text!r} chat_id={chat_id}", flush=True)
     user    = TECHNICIANS.get(user_id, message.get("from", {}).get("first_name", "Técnico"))
     is_admin = (user_id in ADMIN_IDS)
 
