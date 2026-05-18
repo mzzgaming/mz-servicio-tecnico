@@ -268,6 +268,20 @@ def webhook(secret):
     return jsonify({"ok": True})
 
 # ─── DEBUG ─────────────────────────────────────────────────────────────────────
+@app.route("/debug/test-mensaje")
+def debug_test_mensaje():
+    msg = (
+        "👋 Hola *Mz Gaming*\n\n"
+        "🔧 *MZ GAMING — Servicio Técnico*\n\n"
+        "📋 *Comandos disponibles:*\n"
+        "━━━━━━━━━━━━━━━━━\n"
+        "`/ordenes` — Ver todas las órdenes pendientes\n"
+        "`/lista Nombre Cliente` — Marcar la orden de un cliente como lista\n"
+        "`/ayuda` — Mostrar esta ayuda\n"
+    )
+    result = send_telegram(8832743374, msg)
+    return jsonify({"sent": result})
+
 @app.route("/debug/files")
 def debug_files():
     file_list = []
