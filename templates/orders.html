@@ -67,6 +67,9 @@
 
   .id-cell{font-family:monospace;font-size:13px;color:var(--accent);font-weight:600;}
   .tecnico-cell{color:var(--muted);font-size:13px;}
+  .importe-cell{font-size:13px;color:var(--success);font-weight:600;min-width:90px;}
+  .importe-input{background:#0d1017;border:1px solid var(--accent);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:4px 8px;width:90px;outline:none;}
+  .importe-saving{opacity:.5;pointer-events:none;}
 
   .empty{text-align:center;padding:60px 20px;color:var(--muted);}
   .empty-icon{font-size:40px;margin-bottom:12px;}
@@ -209,6 +212,8 @@ function renderTable() {
         ? `<span class="badge badge-baja">🟢 Baja</span>`
         : `<span class="badge badge-norm">🟡 Normal</span>`;
 
+    const importeVal = o.Importe !== undefined && o.Importe !== '' ? o.Importe : '';
+    const importeDisplay = importeVal !== '' ? `$${Number(importeVal).toLocaleString('es-AR')}` : '—';
     return `<tr>
       <td class="id-cell">${o.ID}</td>
       <td>${o.Cliente}</td>
@@ -218,6 +223,7 @@ function renderTable() {
       <td>${prioBadge}</td>
       <td>${estadoBadge}</td>
       <td class="tecnico-cell">${o['Técnico'] || '—'}</td>
+      <td class="importe-cell" data-id="${o.ID}" onclick="editImporte(this, '${importeVal}')">${importeDisplay}</td>
     </tr>`;
   }).join('');
 
@@ -226,12 +232,57 @@ function renderTable() {
       <thead>
         <tr>
           <th>ID</th><th>Cliente</th><th>Componentes</th><th>Trabajo</th>
-          <th>Entrega</th><th>Prioridad</th><th>Estado</th><th>Técnico</th>
+          <th>Entrega</th><th>Prioridad</th><th>Estado</th><th>Técnico</th><th>Importe</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>
   `;
+}
+
+function editImporte(cell, currentVal) {
+  if (cell.querySelector('input')) return;
+  const orderId = cell.dataset.id;
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'importe-input';
+  input.value = currentVal;
+  input.min = 0;
+  input.step = 'any';
+  input.placeholder = '0';
+  cell.textContent = '';
+  cell.appendChild(input);
+  input.focus();
+
+  async function save() {
+    const val = input.value.trim();
+    cell.classList.add('importe-saving');
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({importe: val})
+      });
+      const json = await res.json();
+      if (json.ok) {
+        cell.textContent = val !== '' ? `$${Number(val).toLocaleString('es-AR')}` : '—';
+        cell.dataset.val = val;
+      } else {
+        cell.textContent = currentVal !== '' ? `$${Number(currentVal).toLocaleString('es-AR')}` : '—';
+      }
+    } catch {
+      cell.textContent = currentVal !== '' ? `$${Number(currentVal).toLocaleString('es-AR')}` : '—';
+    }
+    cell.classList.remove('importe-saving');
+  }
+
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') {
+      cell.textContent = currentVal !== '' ? `$${Number(currentVal).toLocaleString('es-AR')}` : '—';
+    }
+  });
 }
 
 loadOrders();

@@ -87,6 +87,21 @@ def get_orders():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route("/api/orders/<order_id>", methods=["PATCH"])
+def update_order(order_id):
+    try:
+        data    = request.json
+        importe = str(data.get("importe", "")).strip()
+        sheet   = get_sheet()
+        records = sheet.get_all_records()
+        for i, row in enumerate(records, start=2):
+            if row.get("ID", "").upper() == order_id.upper():
+                sheet.update_cell(i, 12, importe)
+                return jsonify({"ok": True})
+        return jsonify({"ok": False, "error": "Orden no encontrada"}), 404
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 @app.route("/api/orders", methods=["POST"])
 def create_order():
     try:
@@ -100,10 +115,11 @@ def create_order():
         fecha       = data.get("fecha", "").strip()
         prioridad   = data.get("prioridad", "Normal").strip()
         notas       = data.get("notas", "").strip()
+        importe     = data.get("importe", "").strip()
         created_at  = datetime.now().strftime("%d/%m/%Y %H:%M")
 
         row = [order_id, cliente, componentes, trabajo, fecha,
-               prioridad, notas, "🟡 Pendiente", "", created_at, ""]
+               prioridad, notas, "🟡 Pendiente", "", created_at, "", importe]
         sheet.append_row(row)
 
         prioridad_emoji = {"Alta": "🔴", "Normal": "🟡", "Baja": "🟢"}.get(prioridad, "🟡")
