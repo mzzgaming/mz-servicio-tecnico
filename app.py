@@ -277,6 +277,22 @@ def webhook(secret):
     return jsonify({"ok": True})
 
 # ─── SETUP ─────────────────────────────────────────────────────────────────────
+@app.route("/setup-headers")
+def setup_headers():
+    sheet = get_sheet()
+    headers = sheet.row_values(1)
+    result = {str(i+1): h for i, h in enumerate(headers)}
+
+    EXPECTED = {12: "Importe", 13: "Estado Pago"}
+    updated = {}
+    for col, name in EXPECTED.items():
+        current = headers[col-1] if len(headers) >= col else ""
+        if current != name:
+            sheet.update_cell(1, col, name)
+            updated[col] = f"{current!r} → {name!r}"
+
+    return jsonify({"headers_before": result, "updated": updated})
+
 @app.route("/setup-webhook")
 def setup():
     base_url = request.host_url.rstrip("/")
