@@ -283,11 +283,13 @@ def sheet_info():
     creds_dict = json.loads(creds_json)
     creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
     client = gspread.authorize(creds)
-    spreadsheet = client.open_by_key(SHEET_ID)
+    sid = request.args.get("id", SHEET_ID)
+    spreadsheet = client.open_by_key(sid)
     result = {}
     for ws in spreadsheet.worksheets():
-        headers = ws.row_values(1)
-        sample  = ws.get_all_values()[1:3] if ws.get_all_values()[1:3] else []
+        all_vals = ws.get_all_values()
+        headers  = all_vals[0] if all_vals else []
+        sample   = all_vals[1:3] if len(all_vals) > 1 else []
         result[ws.title] = {"headers": headers, "sample_rows": sample}
     return jsonify(result)
 
