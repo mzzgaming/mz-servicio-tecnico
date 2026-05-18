@@ -146,7 +146,7 @@ def webhook(secret):
     is_admin = (user_id in ADMIN_IDS)
 
     if user_id not in TECHNICIANS:
-        send_telegram(chat_id, "❌ No tenés acceso a este bot.")
+        send_telegram(chat_id, f"DEBUG: tu user_id es {user_id}")
         return jsonify({"ok": True})
 
     # ── /lista <nombre cliente> ─────────────────────────────────────────────
