@@ -615,10 +615,14 @@ async function loadResumen(force = false) {
     const ganancia    = totalVentas - totalGastos;
     const pct         = META_ANUAL > 0 ? Math.min((ganancia / META_ANUAL) * 100, 100) : 0;
 
-    const bancosHtml = bancos.length
-      ? `<div class="bancos-grid">${bancos.map(b => {
-          const nombre = getCol(b,'Banco','banco','Nombre','nombre','BANCO') || JSON.stringify(b).slice(0,20);
-          const saldo  = Number(getCol(b,'Saldo','saldo','Balance','balance','SALDO') || 0);
+    const bancosFiltered = bancos.filter(b => {
+      const n = getCol(b,'Medio de pago','Banco','banco','Nombre','nombre','BANCO') || '';
+      return n && !n.startsWith('TOTAL') && !n.startsWith('💡') && !n.startsWith('📋');
+    });
+    const bancosHtml = bancosFiltered.length
+      ? `<div class="bancos-grid">${bancosFiltered.map(b => {
+          const nombre = getCol(b,'Medio de pago','Banco','banco','Nombre','nombre','BANCO');
+          const saldo  = Number(getCol(b,'Saldo actual ($)','Saldo','saldo','Balance','balance','SALDO') || 0);
           return `<div class="banco-card"><div class="banco-nombre">${nombre}</div><div class="banco-saldo">${fmtMoney(saldo)}</div></div>`;
         }).join('')}</div>`
       : '<p style="color:var(--muted);font-size:13px;margin-bottom:20px">Sin datos de bancos</p>';
