@@ -140,7 +140,7 @@ def webhook(secret):
 
     update  = request.json
     message = update.get("message", {})
-    text    = message.get("text", "")
+    text    = message.get("text", "").split("@")[0]  # strip @botname suffix in groups
     chat_id = message.get("chat", {}).get("id")
     user_id = message.get("from", {}).get("id")
     user    = TECHNICIANS.get(user_id, message.get("from", {}).get("first_name", "Técnico"))
@@ -244,7 +244,7 @@ def webhook(secret):
     # ── /ayuda, /help, /start ────────────────────────────────────────────────
     elif text in ("/ayuda", "/help", "/start"):
         base_cmds = (
-            f"👋 Hola *{user}*\\!\n\n"
+            f"👋 Hola *{user}*\n\n"
             f"🔧 *MZ GAMING — Servicio Técnico*\n\n"
             f"📋 *Comandos disponibles:*\n"
             f"━━━━━━━━━━━━━━━━━\n"
@@ -259,7 +259,7 @@ def webhook(secret):
                 f"`/resumen` — Ver estadísticas generales\n"
                 f"`/cancelar ORD\\-001` — Cancelar una orden por ID\n"
             )
-        send_telegram(chat_id, base_cmds, parse_mode="MarkdownV2")
+        send_telegram(chat_id, base_cmds)
 
     return jsonify({"ok": True})
 
