@@ -326,6 +326,22 @@ def get_biz_sheet(sheet_name):
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+# ─── DEBUG (temporal) ──────────────────────────────────────────────────────────
+@app.route("/api/biz/<sheet_name>/raw")
+def get_biz_raw(sheet_name):
+    if sheet_name not in _BIZ_ALLOWED:
+        return jsonify({"ok": False, "error": "Hoja no permitida"}), 403
+    try:
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet(sheet_name)
+        rows = ws.get_all_values()
+        return jsonify({"ok": True, "rows": [{"row": i+1, "data": r} for i, r in enumerate(rows[:20])]})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 # ─── SETUP ─────────────────────────────────────────────────────────────────────
 @app.route("/setup-webhook")
 def setup():
