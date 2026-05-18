@@ -277,6 +277,20 @@ def webhook(secret):
     return jsonify({"ok": True})
 
 # ─── SETUP ─────────────────────────────────────────────────────────────────────
+@app.route("/api/sheet-info")
+def sheet_info():
+    creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+    creds_dict = json.loads(creds_json)
+    creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+    client = gspread.authorize(creds)
+    spreadsheet = client.open_by_key(SHEET_ID)
+    result = {}
+    for ws in spreadsheet.worksheets():
+        headers = ws.row_values(1)
+        sample  = ws.get_all_values()[1:3] if ws.get_all_values()[1:3] else []
+        result[ws.title] = {"headers": headers, "sample_rows": sample}
+    return jsonify(result)
+
 @app.route("/setup-webhook")
 def setup():
     base_url = request.host_url.rstrip("/")
