@@ -280,6 +280,17 @@ def webhook(secret):
 # ─── BUSINESS SHEETS ───────────────────────────────────────────────────────────
 _BIZ_ALLOWED = {"Ventas", "Stock", "Clientes", "Bancos", "Gastos", "Productos", "Compras", "Resumen"}
 
+HEADER_ROWS = {
+    "Ventas": 4,
+    "Compras": 2,
+    "Gastos": 2,
+    "Productos": 4,
+    "Clientes": 4,
+    "Bancos": 2,
+    "Stock": 2,
+    "Resumen": 1,
+}
+
 @app.route("/api/biz/<sheet_name>")
 def get_biz_sheet(sheet_name):
     if sheet_name not in _BIZ_ALLOWED:
@@ -290,11 +301,11 @@ def get_biz_sheet(sheet_name):
         creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
         client = gspread.authorize(creds)
         ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet(sheet_name)
-        rows = ws.get_all_values()
-        if not rows:
+        all_values = ws.get_all_values()
+        header_row = HEADER_ROWS.get(sheet_name, 1) - 1
+        if not all_values or len(all_values) <= header_row:
             return jsonify({"ok": True, "data": []})
-        headers = rows[0]
-        # limpiar headers duplicados o vacíos
+        headers = all_values[header_row]
         seen = {}
         clean_headers = []
         for h in headers:
@@ -308,7 +319,7 @@ def get_biz_sheet(sheet_name):
                 seen[h] = 0
             clean_headers.append(h)
         records = []
-        for row in rows[1:]:
+        for row in all_values[header_row + 1:]:
             if any(cell.strip() for cell in row):
                 records.append(dict(zip(clean_headers, row)))
         return jsonify({"ok": True, "data": records})
