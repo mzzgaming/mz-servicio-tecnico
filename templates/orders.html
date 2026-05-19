@@ -1052,6 +1052,7 @@ function renderVentasBiz() {
 // ── STOCK ───────────────────────────────────────────────────────────────────
 let stockData = [];
 let stockFilter = 'todos';
+let stockSearch = '';
 
 async function loadStock(force = false) {
   if (!force && loaded['stock_data']) return;
@@ -1080,6 +1081,14 @@ function renderStock() {
     return q > 0 && (m > 0 ? q <= m : q <= 5);
   });
   if (stockFilter === 'sin') data = data.filter(r => getQty(r) === 0);
+  if (stockSearch) {
+    const q = stockSearch.toLowerCase();
+    data = data.filter(r => {
+      const prod = (getCol(r,'Nombre del producto','Producto','nombre','producto') || '').toLowerCase();
+      const cat  = (getCol(r,'Categoría','Categoria','categoria') || '').toLowerCase();
+      return prod.includes(q) || cat.includes(q);
+    });
+  }
 
   const sinStock  = stockData.filter(r => getQty(r) === 0).length;
   const stockBajo = stockData.filter(r => {
@@ -1093,6 +1102,13 @@ function renderStock() {
     <div class="stat-card c-alta"><div class="stat-val">${sinStock}</div><div class="stat-lbl">Sin stock</div></div>
   </div>`;
 
+  const searchHtml = `<div style="margin-bottom:14px">
+    <input id="stock-search" type="text" value="${stockSearch.replace(/"/g,'&quot;')}"
+      placeholder="Buscar producto o categoría..."
+      oninput="stockSearch=this.value;renderStock()"
+      style="width:100%;max-width:420px;background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 14px;outline:none;box-sizing:border-box;">
+  </div>`;
+
   const filtersHtml = `<div class="filters" style="margin-bottom:16px">
     <button class="filter-btn ${stockFilter==='todos'?'active':''}" onclick="setStockFilter('todos',this)">Todos</button>
     <button class="filter-btn ${stockFilter==='bajo'?'active':''}" onclick="setStockFilter('bajo',this)">⚠️ Stock bajo</button>
@@ -1100,7 +1116,7 @@ function renderStock() {
   </div>`;
 
   if (!data.length) {
-    document.getElementById('stock-content').innerHTML = statsHtml + filtersHtml + '<div class="empty"><div class="empty-icon">📦</div>Sin productos para este filtro</div>';
+    document.getElementById('stock-content').innerHTML = statsHtml + searchHtml + filtersHtml + '<div class="empty"><div class="empty-icon">📦</div>Sin productos para este filtro</div>';
     return;
   }
 
@@ -1119,7 +1135,7 @@ function renderStock() {
     </tr>`;
   }).join('');
 
-  document.getElementById('stock-content').innerHTML = statsHtml + filtersHtml + `
+  document.getElementById('stock-content').innerHTML = statsHtml + searchHtml + filtersHtml + `
     <div class="table-wrap">
       <table>
         <thead><tr><th>Producto</th><th>Categoría</th><th style="text-align:center">Cantidad</th><th>Estado</th><th>Precio</th></tr></thead>
