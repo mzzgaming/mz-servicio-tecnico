@@ -920,8 +920,8 @@ async function loadResumen(force = false) {
     const gastosMes = gastosRes.ok ? (gastosRes.data || []).filter(r => isCurrentMonth(getCol(r,'Fecha','fecha','DATE','date'))) : [];
     const bancos    = bancosRes.ok ? (bancosRes.data || []) : [];
 
-    const totalVentas = ventasMes.reduce((s,r) => s + Number(getCol(r,'Importe','Monto','Total','importe','monto','total') || 0), 0);
-    const totalGastos = gastosMes.reduce((s,r) => s + Number(getCol(r,'Importe','Monto','Total','importe','monto','total') || 0), 0);
+    const totalVentas = ventasMes.reduce((s,r) => s + Number(getCol(r,'Importe ($)','Importe','Monto','importe','monto') || 0), 0);
+    const totalGastos = gastosMes.reduce((s,r) => s + Number(getCol(r,'Importe ($)','Importe','Monto','importe','monto') || 0), 0);
     const ganancia    = totalVentas - totalGastos;
     const pct         = META_ANUAL > 0 ? Math.min((ganancia / META_ANUAL) * 100, 100) : 0;
 
@@ -974,7 +974,7 @@ function renderSmallVentasTable(rows) {
     const fecha  = getCol(r,'Fecha','fecha','DATE');
     const cliente = getCol(r,'Cliente','cliente','CLIENTE');
     const desc   = getCol(r,'Descripción','Descripcion','descripcion','Detalle','detalle');
-    const imp    = Number(getCol(r,'Importe','Monto','Total','importe','monto','total') || 0);
+    const imp    = Number(getCol(r,'Importe ($)','Importe','Monto','importe','monto') || 0);
     return `<tr><td class="muted-cell">${fecha}</td><td>${cliente}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${desc}</td><td class="money-cell">${fmtMoney(imp)}</td></tr>`;
   }).join('');
   return `<div class="table-wrap"><table>
@@ -1005,8 +1005,11 @@ async function loadVentas(force = false) {
 }
 
 function renderVentasBiz() {
-  const total    = ventasBizData.reduce((s,r) => s + Number(getCol(r,'Importe','Monto','Total','importe','monto','total') || 0), 0);
-  const cobrado  = ventasBizData.filter(r => getCol(r,'Estado','estado') === 'Pagado').reduce((s,r) => s + Number(getCol(r,'Importe','Monto','Total','importe','monto','total') || 0), 0);
+  const getImp = r => Number(getCol(r,'Importe ($)','Importe','Monto','importe','monto') || 0);
+  const data   = ventasBizData.filter(r => getCol(r,'Fecha','fecha'));
+
+  const total   = data.reduce((s,r) => s + getImp(r), 0);
+  const cobrado = data.filter(r => getCol(r,'Estado','estado') === 'Pagado').reduce((s,r) => s + getImp(r), 0);
 
   const statsHtml = `<div class="stats-3" style="margin-bottom:20px">
     <div class="stat-card c-total"><div class="stat-val" style="font-size:22px">${fmtMoney(total)}</div><div class="stat-lbl">Total registrado</div></div>
@@ -1014,19 +1017,19 @@ function renderVentasBiz() {
     <div class="stat-card c-pend"><div class="stat-val" style="font-size:22px">${fmtMoney(total - cobrado)}</div><div class="stat-lbl">Pendiente</div></div>
   </div>`;
 
-  if (!ventasBizData.length) {
+  if (!data.length) {
     document.getElementById('ventas-biz-content').innerHTML = statsHtml + '<div class="empty"><div class="empty-icon">💰</div>Sin ventas registradas</div>';
     return;
   }
 
-  const rows = ventasBizData.map(r => {
-    const fecha    = getCol(r,'Fecha','fecha','DATE');
-    const cliente  = getCol(r,'Cliente','cliente');
-    const desc     = getCol(r,'Descripción','Descripcion','Detalle','descripcion');
-    const imp      = Number(getCol(r,'Importe','Monto','Total','importe','monto','total') || 0);
-    const estado   = getCol(r,'Estado','estado') || 'Pendiente';
-    const medio    = getCol(r,'Medio de Pago','Medio','MedioPago','medio de pago','medio');
-    const epClass  = stClass(estado);
+  const rows = data.map(r => {
+    const fecha   = getCol(r,'Fecha','fecha','DATE');
+    const cliente = getCol(r,'Cliente','cliente');
+    const desc    = getCol(r,'Descripción','Descripcion','Detalle','descripcion');
+    const imp     = getImp(r);
+    const estado  = getCol(r,'Estado','estado') || 'Pendiente';
+    const medio   = getCol(r,'Medio de pago','Medio de Pago','MedioPago','medio');
+    const epClass = stClass(estado);
     return `<tr>
       <td class="muted-cell">${fecha}</td>
       <td>${cliente}</td>
@@ -1037,14 +1040,12 @@ function renderVentasBiz() {
     </tr>`;
   }).join('');
 
-  const total_sum = ventasBizData.reduce((s,r) => s + Number(getCol(r,'Importe','Monto','Total','importe','monto','total') || 0), 0);
-
   document.getElementById('ventas-biz-content').innerHTML = statsHtml + `
     <div class="table-wrap">
       <table>
         <thead><tr><th>Fecha</th><th>Cliente</th><th>Descripción</th><th>Importe</th><th>Estado</th><th>Medio de Pago</th></tr></thead>
         <tbody>${rows}</tbody>
-        <tfoot><tr><td colspan="3"><strong>TOTAL</strong></td><td class="total-val">${fmtMoney(total_sum)}</td><td colspan="2"></td></tr></tfoot>
+        <tfoot><tr><td colspan="3"><strong>TOTAL</strong></td><td class="total-val">${fmtMoney(total)}</td><td colspan="2"></td></tr></tfoot>
       </table>
     </div>`;
 }
@@ -1172,9 +1173,9 @@ async function loadClientes(force = false) {
 
 function renderClientes() {
   const q = (document.getElementById('clientesSearch')?.value || '').trim().toLowerCase();
-  let data = clientesData;
+  let data = clientesData.filter(r => getCol(r,'Cliente','cliente','Nombre','nombre'));
   if (q) data = data.filter(r => {
-    const nombre = getCol(r,'Nombre','nombre','Cliente','cliente','NOMBRE');
+    const nombre = getCol(r,'Cliente','cliente','Nombre','nombre');
     return nombre.toLowerCase().includes(q);
   });
 
@@ -1184,27 +1185,29 @@ function renderClientes() {
   }
 
   const rows = data.map(r => {
-    const nombre   = getCol(r,'Nombre','nombre','Cliente','cliente','NOMBRE');
-    const tel      = getCol(r,'Teléfono','Telefono','telefono','Tel','tel','TELEFONO');
-    const email    = getCol(r,'Email','email','Correo','correo','EMAIL');
-    const visita   = getCol(r,'Última Visita','Ultima Visita','ultima_visita','Ultimo Contacto','UltimaVisita');
-    const total    = Number(getCol(r,'Total Comprado','TotalComprado','Total','total','TOTAL') || 0);
-    const deuda    = Number(getCol(r,'Deuda','deuda','Saldo','saldo','DEUDA') || 0);
-    const deudaCls = deuda > 0 ? 'money-cell' : 'muted-cell';
+    const nombre  = getCol(r,'Cliente','cliente','Nombre','nombre');
+    const tel     = getCol(r,'Teléfono','Telefono','telefono','Tel','tel');
+    const tipo    = getCol(r,'Tipo cliente','Tipo','tipo');
+    const plan    = getCol(r,'Plan','plan');
+    const estado  = getCol(r,'Estado','estado');
+    const abono   = Number(getCol(r,'Abono mensual ($)','Abono','abono') || 0);
+    const venc    = getCol(r,'Próximo vencimiento','Próximo Vencimiento','vencimiento');
+    const eClass  = estado === 'Activo' ? 'badge-ok' : estado === 'Inactivo' ? 'badge-err' : 'badge-warn';
     return `<tr>
       <td><strong>${nombre}</strong></td>
-      <td class="muted-cell">${tel}</td>
-      <td class="muted-cell">${email}</td>
-      <td class="muted-cell">${visita}</td>
-      <td class="money-cell">${total > 0 ? fmtMoney(total) : '—'}</td>
-      <td class="${deudaCls}">${deuda > 0 ? fmtMoney(deuda) : '—'}</td>
+      <td class="muted-cell">${tel || '—'}</td>
+      <td class="muted-cell">${tipo || '—'}</td>
+      <td class="muted-cell">${plan || '—'}</td>
+      <td>${estado ? `<span class="badge ${eClass}">${estado}</span>` : '—'}</td>
+      <td class="money-cell">${abono > 0 ? fmtMoney(abono) : '—'}</td>
+      <td class="muted-cell">${venc || '—'}</td>
     </tr>`;
   }).join('');
 
   document.getElementById('clientes-content').innerHTML = `
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Última Visita</th><th>Total Comprado</th><th>Deuda</th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Teléfono</th><th>Tipo</th><th>Plan</th><th>Estado</th><th>Abono mensual</th><th>Próx. vencimiento</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
