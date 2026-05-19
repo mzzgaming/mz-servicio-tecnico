@@ -15,6 +15,8 @@ ADMIN_IDS = {909301871, 8832743374}  # Martin y MZ Gaming (admins)
 TECHNICIANS = {
     909301871: "Martin",
     8832743374: "Mz Gaming",
+    5521238474: "Alvaro",
+    7837832832: "Adrian",
 }
 
 ALL_CHAT_IDS = list(TECHNICIANS.keys())
