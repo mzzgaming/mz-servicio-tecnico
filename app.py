@@ -322,8 +322,7 @@ def get_biz_sheet(sheet_name):
         for row in all_values[header_row + 1:]:
             if any(cell.strip() for cell in row):
                 records.append(dict(zip(clean_headers, row)))
-        records = [r for r in records if any(str(v).strip() for k,v in r.items() if not k.startswith('_empty'))]
-        records = [r for r in records if any(str(v).strip() for k,v in r.items() if not k.startswith('_empty'))]
+        records = [r for r in records if any(str(v).strip() and str(v).strip() != '0' for k,v in r.items() if not k.startswith('_empty'))]
         return jsonify({"ok": True, "data": records})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
