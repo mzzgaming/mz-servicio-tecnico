@@ -1,8 +1,10 @@
 import os
 import json
-from datetime import datetime
+import base64
+import io
+from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, request, jsonify, render_template, redirect, url_for, session
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session, make_response
 import gspread
 from google.oauth2.service_account import Credentials
 import requests
@@ -510,6 +512,198 @@ def get_biz_raw(sheet_name):
         return jsonify({"ok": True, "rows": [{"row": i+1, "data": r} for i, r in enumerate(rows[:20])]})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+# ─── PRESUPUESTOS ──────────────────────────────────────────────────────────────
+@app.route("/presupuestos")
+@requires_auth
+def presupuestos_page():
+    return render_template("presupuestos.html")
+
+@app.route("/api/presupuesto/numero", methods=["GET"])
+@requires_auth
+def get_numero_presupuesto():
+    try:
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        try:
+            ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet("Presupuestos")
+            values = ws.get_all_values()
+            numero = len(values)
+        except:
+            numero = 0
+        return jsonify({"ok": True, "numero": numero + 1})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/api/presupuesto", methods=["POST"])
+@requires_auth
+def crear_presupuesto():
+    try:
+        data = request.json
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        try:
+            ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet("Presupuestos")
+        except:
+            sh = client.open_by_key(BUSINESS_SHEET_ID)
+            ws = sh.add_worksheet(title="Presupuestos", rows=1000, cols=10)
+            ws.append_row(["N°", "Fecha", "Cliente", "Tipo", "Total", "IVA", "Estado"])
+        numero = data.get("numero", "")
+        ws.append_row([
+            numero,
+            data.get("fecha", ""),
+            data.get("cliente", ""),
+            data.get("tipo", ""),
+            data.get("total", ""),
+            data.get("iva_total", ""),
+            "Pendiente"
+        ])
+        return jsonify({"ok": True, "numero": numero})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/api/presupuesto/pdf", methods=["POST"])
+@requires_auth
+def generar_pdf():
+    try:
+        from weasyprint import HTML
+        data = request.json
+        html_content = generar_html_presupuesto(data)
+        pdf = HTML(string=html_content).write_pdf()
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=presupuesto_{data.get("numero","")}.pdf'
+        return response
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+def generar_html_presupuesto(data):
+    cliente = data.get("cliente", "")
+    tipo = data.get("tipo", "Presupuesto B")
+    numero = str(data.get("numero", 1)).zfill(6)
+    numero_display = f"00004 - {numero}"
+    fecha = data.get("fecha", "")
+    vencimiento = data.get("vencimiento", "")
+    items = data.get("items", [])
+    notas = data.get("notas", "")
+
+    subtotal = sum(float(i.get("cantidad",0)) * float(i.get("precio",0)) * (1 - float(i.get("descuento",0))/100) for i in items)
+    iva_pct = 21 if "A" in tipo else 0
+    iva_monto = subtotal * iva_pct / 100
+    total = subtotal + iva_monto
+
+    items_html = ""
+    for i, item in enumerate(items, 1):
+        cant = float(item.get("cantidad", 0))
+        precio = float(item.get("precio", 0))
+        desc = float(item.get("descuento", 0))
+        subtot = cant * precio * (1 - desc/100)
+        items_html += f"""
+        <tr>
+            <td>{i}</td>
+            <td>{item.get("descripcion","")}</td>
+            <td style="text-align:center">{cant:.0f}</td>
+            <td style="text-align:right">${precio:,.2f}</td>
+            <td style="text-align:center">{desc:.0f}%</td>
+            <td style="text-align:right">${subtot:,.2f}</td>
+        </tr>"""
+
+    logo_b64 = ""
+    try:
+        logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "MZ_Logo.png")
+        with open(logo_path, "rb") as f:
+            logo_b64 = base64.b64encode(f.read()).decode()
+    except:
+        pass
+    logo_tag = f'<img src="data:image/png;base64,{logo_b64}" style="height:70px;">' if logo_b64 else ""
+
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body {{ font-family: Arial, sans-serif; font-size: 12px; color: #222; margin: 0; padding: 24px; }}
+  .header {{ display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #8b0000; padding-bottom: 16px; margin-bottom: 20px; }}
+  .empresa h2 {{ color: #8b0000; font-size: 18px; margin: 0 0 4px; }}
+  .empresa p {{ margin: 2px 0; color: #444; font-size: 11px; }}
+  .doc-info {{ text-align: right; }}
+  .doc-info h1 {{ font-size: 22px; color: #8b0000; margin: 0 0 6px; font-style: italic; font-weight: bold; }}
+  .doc-info p {{ margin: 2px 0; font-size: 11px; color: #333; }}
+  .doc-info .original {{ font-size: 10px; color: #666; }}
+  .cliente-box {{ background: #f5f5f5; border-left: 4px solid #8b0000; padding: 12px 16px; margin-bottom: 20px; border-radius: 0 8px 8px 0; }}
+  table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
+  thead tr {{ background: #8b0000; color: white; }}
+  thead th {{ padding: 10px 8px; text-align: left; font-size: 11px; }}
+  tbody tr:nth-child(even) {{ background: #f9f9f9; }}
+  tbody td {{ padding: 8px; border-bottom: 1px solid #eee; }}
+  .totales {{ display: flex; justify-content: flex-end; }}
+  .totales-box {{ width: 280px; }}
+  .totales-row {{ display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px; }}
+  .totales-row.total {{ font-weight: bold; font-size: 15px; color: #8b0000; border-bottom: none; padding-top: 10px; }}
+  .footer {{ margin-top: 40px; border-top: 1px solid #ddd; padding-top: 12px; text-align: center; color: #888; font-size: 10px; }}
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    {logo_tag}
+    <div class="empresa">
+      <h2>MZ GAMING</h2>
+      <p>Santiago Del Estero 80, Salta (4400), Argentina</p>
+      <p>Tel: 387-2510080 | mzzgaming@hotmail.com</p>
+      <p>CUIT: 20-39535176-2 | Responsable Inscripto</p>
+      <p>Ingresos Brutos N°: 20395351762</p>
+      <p>Inicio de actividad: 02-02-2021</p>
+    </div>
+  </div>
+  <div class="doc-info">
+    <h1>{tipo}</h1>
+    <p class="original">Original</p>
+    <p><strong>N° {numero_display}</strong></p>
+    <p>Fecha: {fecha}</p>
+    <p>C.U.I.T.: 20-39535176-2</p>
+    <p>Ingresos brutos N° 20395351762</p>
+    <p>Inicio de actividad 02-02-2021</p>
+  </div>
+</div>
+
+<div class="cliente-box">
+  <strong>Cliente:</strong> {cliente}<br>
+  <small style="color:#666">Condición frente al IVA: Consumidor Final</small>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th><th>Descripción</th>
+      <th style="text-align:center">Cant.</th>
+      <th style="text-align:right">P. Unit.</th>
+      <th style="text-align:center">Desc.</th>
+      <th style="text-align:right">Subtotal</th>
+    </tr>
+  </thead>
+  <tbody>{items_html}</tbody>
+</table>
+
+<div class="totales">
+  <div class="totales-box">
+    <div class="totales-row"><span>Subtotal:</span><span>${subtotal:,.2f}</span></div>
+    {"<div class='totales-row'><span>IVA 21%:</span><span>$" + f"{iva_monto:,.2f}" + "</span></div>" if iva_pct > 0 else ""}
+    <div class="totales-row total"><span>TOTAL:</span><span>${total:,.2f}</span></div>
+  </div>
+</div>
+
+{"<div style='margin-top:20px;padding:12px;background:#f5f5f5;border-radius:8px;'><strong>Notas:</strong> " + notas + "</div>" if notas else ""}
+
+<div class="footer">
+  Este documento no tiene validez fiscal · MZ GAMING © 2026 · Santiago Del Estero 80, Salta, Argentina
+</div>
+</body>
+</html>"""
 
 # ─── SETUP ─────────────────────────────────────────────────────────────────────
 @app.route("/setup-webhook")

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MZ GAMING — Presupuestos</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c10;--surface:#111318;--border:#1e2230;
+    --accent:#00e5ff;--accent2:#7c3aed;--danger:#ff4757;--success:#00c853;--warn:#ffab00;
+    --text:#e8eaf0;--muted:#5a6080;--radius:10px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:linear-gradient(rgba(0,229,255,.025)1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.025)1px,transparent 1px);
+    background-size:40px 40px;}
+  .layout{display:flex;min-height:100vh;position:relative;z-index:1;}
+  .sidebar{width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:28px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .logo{padding:0 24px 28px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+  .logo-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--accent);line-height:1;}
+  .logo-sub{font-size:10px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:2px;}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:12px 24px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:500;transition:all .18s;border-left:3px solid transparent;text-decoration:none;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;}
+  .nav-item:hover{color:var(--text);background:rgba(255,255,255,.04);}
+  .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,229,255,.06);}
+  .nav-icon{width:18px;height:18px;flex-shrink:0;}
+  .nav-sep{height:1px;background:var(--border);margin:8px 0;}
+  .nav-group{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;padding:16px 24px 6px;font-weight:600;}
+  .main{flex:1;padding:36px 40px;overflow-y:auto;}
+  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+  .page-header h1{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1.5px;}
+  .page-header p{color:var(--muted);font-size:13px;margin-top:3px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;margin-bottom:24px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .form-full{grid-column:1/-1;}
+  .field{display:flex;flex-direction:column;gap:7px;}
+  .field label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+  .field input,.field select,.field textarea{background:#0d1017;border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;transition:border-color .18s;}
+  .field input:focus,.field select:focus{border-color:var(--accent);}
+  .section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;color:var(--accent);}
+  .items-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+  .items-table th{padding:10px 8px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border);}
+  .items-table td{padding:8px;}
+  .items-table input{background:#0d1017;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;outline:none;width:100%;}
+  .items-table input:focus{border-color:var(--accent);}
+  .btn-add-item{padding:8px 16px;border-radius:8px;border:1px dashed var(--accent);background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:6px;}
+  .btn-add-item:hover{background:rgba(0,229,255,.06);}
+  .btn-del{padding:6px 10px;border-radius:6px;border:none;background:rgba(255,71,87,.1);color:var(--danger);cursor:pointer;font-size:14px;}
+  .totales-box{background:#0d1017;border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:16px;}
+  .totales-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:14px;}
+  .totales-row.total{font-weight:700;font-size:18px;color:var(--accent);border-bottom:none;padding-top:12px;}
+  .btn-actions{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
+  .btn-primary{flex:1;padding:14px;background:var(--accent);color:#001a1f;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-secondary{flex:1;padding:14px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-whatsapp{flex:1;padding:14px;background:#25D366;color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-primary:hover{opacity:.9;}
+  .btn-secondary:hover{border-color:#444;}
+  .toast{position:fixed;bottom:28px;right:28px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:12px;font-size:14px;min-width:280px;z-index:999;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none;}
+  .toast.show{transform:translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-title">MZ GAMING</div>
+      <div class="logo-sub">Panel de Control</div>
+    </div>
+    <a href="/logout" style="display:flex;align-items:center;gap:8px;padding:8px 24px;color:var(--muted);font-size:12px;text-decoration:none;margin-bottom:4px;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Cerrar sesión
+    </a>
+    <a href="/" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Nueva orden
+    </a>
+    <div class="nav-sep"></div>
+    <div class="nav-group">Módulos</div>
+    <a href="/orders#ordenes" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Servicio Técnico
+    </a>
+    <a href="/orders#resumen" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Resumen
+    </a>
+    <a href="/orders#ventas" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Ventas
+    </a>
+    <a href="/orders#stock" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      Stock
+    </a>
+    <a href="/orders#clientes" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Clientes
+    </a>
+    <div class="nav-sep"></div>
+    <div class="nav-group">Cargar datos</div>
+    <a href="/orders#nueva-venta" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Nueva Venta
+    </a>
+    <a href="/orders#nueva-compra" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      Nueva Compra
+    </a>
+    <a href="/orders#nuevo-gasto" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      Nuevo Gasto
+    </a>
+    <a href="/orders#nuevo-cliente" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+      Nuevo Cliente
+    </a>
+    <a href="/orders#nuevo-producto" class="nav-item">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      Nuevo Producto
+    </a>
+    <div class="nav-sep"></div>
+    <a href="/presupuestos" class="nav-item active">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Presupuestos
+    </a>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1>Presupuestos y Remitos</h1>
+        <p>Generá presupuestos A/B y remitos con PDF descargable</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label>Tipo de Documento</label>
+          <select id="tipo" onchange="actualizarTotales()">
+            <option value="Presupuesto B">Presupuesto B</option>
+            <option value="Presupuesto A">Presupuesto A (+ IVA 21%)</option>
+            <option value="Remito">Remito</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>N° Documento</label>
+          <input type="text" id="numero" value="000001" readonly style="color:var(--accent);font-weight:700;">
+        </div>
+        <div class="field">
+          <label>Cliente *</label>
+          <input type="text" id="cliente" placeholder="Nombre del cliente">
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="fecha">
+        </div>
+        <div class="field">
+          <label>Vencimiento</label>
+          <input type="date" id="vencimiento">
+        </div>
+        <div class="field">
+          <label>Notas</label>
+          <input type="text" id="notas" placeholder="Observaciones opcionales">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Items</div>
+      <table class="items-table" id="items-table">
+        <thead>
+          <tr>
+            <th style="width:40%">Descripción</th>
+            <th style="width:10%">Cant.</th>
+            <th style="width:18%">Precio Unit. ($)</th>
+            <th style="width:12%">Desc. %</th>
+            <th style="width:15%">Subtotal</th>
+            <th style="width:5%"></th>
+          </tr>
+        </thead>
+        <tbody id="items-body"></tbody>
+      </table>
+      <button class="btn-add-item" onclick="agregarItem()">+ Agregar item</button>
+
+      <div class="totales-box">
+        <div class="totales-row"><span>Subtotal:</span><span id="t-subtotal">$0,00</span></div>
+        <div class="totales-row" id="row-iva" style="display:none"><span>IVA 21%:</span><span id="t-iva">$0,00</span></div>
+        <div class="totales-row total"><span>TOTAL:</span><span id="t-total">$0,00</span></div>
+      </div>
+    </div>
+
+    <div class="btn-actions">
+      <button class="btn-secondary" onclick="generarPDF()">📄 Descargar PDF</button>
+      <button class="btn-primary" onclick="guardarPresupuesto()">💾 Guardar</button>
+      <button class="btn-whatsapp" onclick="compartirWhatsApp()">📱 WhatsApp</button>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon"></span>
+  <div><strong id="toast-title"></strong><br><small id="toast-msg" style="color:var(--muted)"></small></div>
+</div>
+
+<script>
+const hoy = new Date();
+document.getElementById('fecha').value = hoy.toISOString().split('T')[0];
+const venc = new Date(hoy); venc.setDate(venc.getDate() + 7);
+document.getElementById('vencimiento').value = venc.toISOString().split('T')[0];
+
+fetch('/api/presupuesto/numero').then(r => r.json()).then(d => {
+  if (d.ok) document.getElementById('numero').value = String(d.numero).padStart(6, '0');
+});
+
+function agregarItem() {
+  const tbody = document.getElementById('items-body');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" placeholder="Descripción del producto/servicio" oninput="actualizarTotales()"></td>
+    <td><input type="number" value="1" min="1" style="width:60px" oninput="actualizarTotales()"></td>
+    <td><input type="number" value="0" min="0" step="any" oninput="actualizarTotales()"></td>
+    <td><input type="number" value="0" min="0" max="100" style="width:60px" oninput="actualizarTotales()"></td>
+    <td class="subtotal-cell" style="color:var(--success);font-weight:600;padding:8px;">$0,00</td>
+    <td><button class="btn-del" onclick="this.closest('tr').remove();actualizarTotales()">🗑</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function getItems() {
+  return Array.from(document.querySelectorAll('#items-body tr')).map(tr => {
+    const inputs = tr.querySelectorAll('input');
+    return {
+      descripcion: inputs[0].value,
+      cantidad: parseFloat(inputs[1].value) || 0,
+      precio: parseFloat(inputs[2].value) || 0,
+      descuento: parseFloat(inputs[3].value) || 0,
+    };
+  });
+}
+
+function fmtMoney(n) {
+  return '$' + Number(n).toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function actualizarTotales() {
+  const items = getItems();
+  const rows = document.querySelectorAll('#items-body tr');
+  let subtotal = 0;
+  items.forEach((item, i) => {
+    const sub = item.cantidad * item.precio * (1 - item.descuento / 100);
+    subtotal += sub;
+    const cell = rows[i].querySelector('.subtotal-cell');
+    if (cell) cell.textContent = fmtMoney(sub);
+  });
+  const tipo = document.getElementById('tipo').value;
+  const iva_pct = tipo === 'Presupuesto A' ? 0.21 : 0;
+  const iva = subtotal * iva_pct;
+  const total = subtotal + iva;
+  document.getElementById('t-subtotal').textContent = fmtMoney(subtotal);
+  document.getElementById('t-iva').textContent = fmtMoney(iva);
+  document.getElementById('t-total').textContent = fmtMoney(total);
+  document.getElementById('row-iva').style.display = iva_pct > 0 ? 'flex' : 'none';
+}
+
+function getDatos() {
+  return {
+    tipo: document.getElementById('tipo').value,
+    numero: document.getElementById('numero').value,
+    cliente: document.getElementById('cliente').value,
+    fecha: document.getElementById('fecha').value,
+    vencimiento: document.getElementById('vencimiento').value,
+    notas: document.getElementById('notas').value,
+    items: getItems(),
+    total: document.getElementById('t-total').textContent.replace('$','').replace(/\./g,'').replace(',','.'),
+    iva_total: document.getElementById('t-iva').textContent.replace('$','').replace(/\./g,'').replace(',','.')
+  };
+}
+
+function showToast(ok, title, msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-icon').textContent = ok ? '✅' : '❌';
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-msg').textContent = msg;
+  t.style.borderLeft = ok ? '3px solid var(--success)' : '3px solid var(--danger)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+async function generarPDF() {
+  const datos = getDatos();
+  if (!datos.cliente) { showToast(false, 'Falta el cliente', 'Ingresá el nombre del cliente'); return; }
+  if (datos.items.length === 0) { showToast(false, 'Sin items', 'Agregá al menos un item'); return; }
+  try {
+    const res = await fetch('/api/presupuesto/pdf', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(datos)
+    });
+    if (res.ok) {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `presupuesto_${datos.numero}.pdf`;
+      a.click(); URL.revokeObjectURL(url);
+      showToast(true, 'PDF generado', `Presupuesto N° ${datos.numero}`);
+    } else {
+      const json = await res.json();
+      showToast(false, 'Error al generar PDF', json.error);
+    }
+  } catch(e) { showToast(false, 'Error', e.message); }
+}
+
+async function guardarPresupuesto() {
+  const datos = getDatos();
+  if (!datos.cliente) { showToast(false, 'Falta el cliente', 'Ingresá el nombre del cliente'); return; }
+  try {
+    const res = await fetch('/api/presupuesto', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(datos)
+    });
+    const json = await res.json();
+    if (json.ok) {
+      showToast(true, 'Guardado', `Presupuesto N° ${datos.numero} guardado`);
+      const num = parseInt(document.getElementById('numero').value) + 1;
+      document.getElementById('numero').value = String(num).padStart(6, '0');
+    } else showToast(false, 'Error', json.error);
+  } catch(e) { showToast(false, 'Error', e.message); }
+}
+
+function compartirWhatsApp() {
+  const datos = getDatos();
+  if (!datos.cliente) { showToast(false, 'Falta el cliente', 'Ingresá el nombre del cliente'); return; }
+  const items = datos.items.map(i => `• ${i.descripcion} x${i.cantidad} = $${(i.cantidad * i.precio * (1 - i.descuento/100)).toLocaleString('es-AR')}`).join('\n');
+  const texto = `*${datos.tipo} N° ${datos.numero}*\n*MZ GAMING*\nSantiago Del Estero 80, Salta\nTel: 387-2510080\n\n*Cliente:* ${datos.cliente}\n*Fecha:* ${datos.fecha}\n*Vence:* ${datos.vencimiento}\n\n*Items:*\n${items}\n\n*TOTAL: ${document.getElementById('t-total').textContent}*\n\n_MZ GAMING - Salta, Argentina_`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+}
+
+agregarItem();
+</script>
+</body>
+</html>
