@@ -513,6 +513,61 @@ def get_biz_raw(sheet_name):
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+# ─── BUSCAR CLIENTE ────────────────────────────────────────────────────────────
+@app.route("/api/buscar-cliente")
+@requires_auth
+def buscar_cliente():
+    q = request.args.get("q", "").strip().replace("-", "").replace(" ", "")
+    if not q:
+        return jsonify({"ok": False})
+
+    # 1. Buscar en sheet propio
+    try:
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet("Clientes")
+        rows = ws.get_all_values()
+        if len(rows) >= 3:
+            headers = rows[2]  # HEADER_ROWS["Clientes"] = 3
+            for row in rows[3:]:
+                if not any(row):
+                    continue
+                record = dict(zip(headers, row))
+                nombre = record.get("Cliente", "")
+                telefono = record.get("Teléfono", "").replace("-", "").replace(" ", "")
+                if q in telefono or q.lower() in nombre.lower():
+                    return jsonify({"ok": True, "fuente": "sheet", "cliente": {
+                        "nombre": nombre,
+                        "tipo": record.get("Tipo cliente", "Consumidor Final"),
+                        "domicilio": "",
+                        "condicion_iva": record.get("Tipo cliente", "Consumidor Final"),
+                    }})
+    except Exception:
+        pass
+
+    # 2. Consultar TangoFactura (solo si q parece un CUIT)
+    if q.isdigit() and len(q) >= 10:
+        try:
+            r = requests.get(
+                f"https://afip.tangofactura.com/Rest/GetContribuyenteFull?cuit={q}",
+                timeout=5
+            )
+            data = r.json()
+            if data and data.get("Contribuyente") and data["Contribuyente"].get("Nombre"):
+                c = data["Contribuyente"]
+                return jsonify({"ok": True, "fuente": "afip", "cliente": {
+                    "nombre": c.get("Nombre", ""),
+                    "tipo": c.get("CondicionIva", "Consumidor Final"),
+                    "domicilio": c.get("Domicilio", ""),
+                    "condicion_iva": c.get("CondicionIva", "Consumidor Final"),
+                }})
+        except Exception:
+            pass
+
+    return jsonify({"ok": False})
+
 # ─── PRESUPUESTOS ──────────────────────────────────────────────────────────────
 @app.route("/presupuestos")
 @requires_auth
