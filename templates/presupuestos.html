@@ -148,9 +148,25 @@
           <label>N° Documento</label>
           <input type="text" id="numero" value="000001" readonly style="color:var(--accent);font-weight:700;">
         </div>
-        <div class="field">
+        <div class="field form-full">
+          <label>CUIT del cliente</label>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input type="text" id="cuit-cliente" placeholder="20-12345678-9" maxlength="13" style="flex:1;" oninput="this.value=this.value.replace(/[^0-9-]/g,'')">
+            <button type="button" onclick="buscarCliente()" style="padding:11px 18px;background:var(--accent);color:#001a1f;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Buscar</button>
+            <span id="cuit-status" style="font-size:12px;color:var(--muted);white-space:nowrap;"></span>
+          </div>
+        </div>
+        <div class="field form-full">
           <label>Cliente *</label>
-          <input type="text" id="cliente" placeholder="Nombre del cliente">
+          <input type="text" id="cliente" placeholder="Nombre del cliente (se completa automáticamente con el CUIT)">
+        </div>
+        <div class="field" id="campo-condicion" style="display:none;">
+          <label>Condición frente al IVA</label>
+          <input type="text" id="condicion-iva" placeholder="Responsable Inscripto">
+        </div>
+        <div class="field" id="campo-domicilio" style="display:none;">
+          <label>Domicilio</label>
+          <input type="text" id="domicilio-cliente" placeholder="Domicilio fiscal">
         </div>
         <div class="field">
           <label>Fecha</label>
@@ -213,6 +229,33 @@ document.getElementById('vencimiento').value = venc.toISOString().split('T')[0];
 fetch('/api/presupuesto/numero').then(r => r.json()).then(d => {
   if (d.ok) document.getElementById('numero').value = String(d.numero).padStart(6, '0');
 });
+
+async function buscarCliente() {
+  const raw = document.getElementById('cuit-cliente').value.replace(/[-\s]/g, '');
+  const v = raw.replace(/\D/g, '');
+  if (v.length < 10) { document.getElementById('cuit-status').textContent = '⚠️ CUIT inválido'; return; }
+  document.getElementById('cuit-status').textContent = '🔍 Buscando...';
+
+  // 2. Consultar TangoFactura
+  try {
+    const res = await fetch(`https://afip.tangofactura.com/Rest/GetContribuyenteFull?cuit=${v}`);
+    const json = await res.json();
+    if (json && json.Contribuyente && json.Contribuyente.Nombre) {
+      const c = json.Contribuyente;
+      document.getElementById('cliente').value = c.Nombre;
+      document.getElementById('condicion-iva').value = c.CondicionIva || 'Responsable Inscripto';
+      document.getElementById('campo-condicion').style.display = 'flex';
+      if (c.Domicilio) {
+        document.getElementById('domicilio-cliente').value = c.Domicilio;
+        document.getElementById('campo-domicilio').style.display = 'flex';
+      }
+      document.getElementById('cuit-status').textContent = '✅ Encontrado';
+      return;
+    }
+  } catch {}
+
+  document.getElementById('cuit-status').textContent = '⚠️ No encontrado — ingresá manualmente';
+}
 
 function agregarItem() {
   const tbody = document.getElementById('items-body');
