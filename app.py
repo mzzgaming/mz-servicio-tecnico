@@ -284,7 +284,7 @@ HEADER_ROWS = {
     "Ventas": 4,
     "Compras": 2,
     "Gastos": 2,
-    "Productos": 4,
+    "Productos": 6,
     "Clientes": 4,
     "Bancos": 6,
     "Stock": 2,

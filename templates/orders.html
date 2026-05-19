@@ -1057,9 +1057,7 @@ async function loadStock(force = false) {
   if (!force && loaded['stock_data']) return;
   document.getElementById('stock-content').innerHTML = '<div class="loading"><div class="spin"></div></div>';
   try {
-    const res = await fetch('/api/biz/Stock').then(r => r.json()).catch(() => null);
-    const res2 = res || await fetch('/api/biz/Productos').then(r => r.json()).catch(() => ({ok:false, error:'No se encontró hoja Stock ni Productos'}));
-    const json = res?.ok ? res : res2;
+    const json = await fetch('/api/biz/Productos').then(r => r.json()).catch(() => ({ok:false, error:'Error de conexión'}));
     if (!json.ok) {
       document.getElementById('stock-content').innerHTML = errorBox(json.error);
       return;
@@ -1073,18 +1071,19 @@ async function loadStock(force = false) {
 }
 
 function renderStock() {
+  const getQty = r => Number(getCol(r,'Stock actual','Stock','cantidad','Cantidad') || 0);
+  const getMin = r => Number(getCol(r,'Stock mínimo','Stock Mínimo','minimo') || 0);
+
   let data = stockData;
   if (stockFilter === 'bajo') data = data.filter(r => {
-    const q = Number(getCol(r,'Cantidad','Stock','cantidad','stock','Qty','qty') || 0);
-    const m = Number(getCol(r,'Stock Mínimo','Minimo','Min','minimo','stock_minimo') || 0);
+    const q = getQty(r), m = getMin(r);
     return q > 0 && (m > 0 ? q <= m : q <= 5);
   });
-  if (stockFilter === 'sin')  data = data.filter(r => Number(getCol(r,'Cantidad','Stock','cantidad','stock','Qty','qty') || 0) === 0);
+  if (stockFilter === 'sin') data = data.filter(r => getQty(r) === 0);
 
-  const sinStock   = stockData.filter(r => Number(getCol(r,'Cantidad','Stock','cantidad','stock','Qty','qty') || 0) === 0).length;
-  const stockBajo  = stockData.filter(r => {
-    const q = Number(getCol(r,'Cantidad','Stock','cantidad','stock','Qty','qty') || 0);
-    const m = Number(getCol(r,'Stock Mínimo','Minimo','Min','minimo','stock_minimo') || 0);
+  const sinStock  = stockData.filter(r => getQty(r) === 0).length;
+  const stockBajo = stockData.filter(r => {
+    const q = getQty(r), m = getMin(r);
     return q > 0 && (m > 0 ? q <= m : q <= 5);
   }).length;
 
@@ -1106,14 +1105,14 @@ function renderStock() {
   }
 
   const rows = data.map(r => {
-    const prod  = getCol(r,'Producto','producto','Nombre','nombre','PRODUCTO');
-    const cat   = getCol(r,'Categoría','Categoria','categoria','Category','category');
-    const qty   = Number(getCol(r,'Cantidad','Stock','cantidad','stock','Qty','qty') || 0);
-    const min   = Number(getCol(r,'Stock Mínimo','Minimo','Min','minimo','stock_minimo') || 0);
-    const precio = Number(getCol(r,'Precio','precio','Price','price') || 0);
+    const prod   = getCol(r,'Nombre del producto','Producto','nombre','producto');
+    const cat    = getCol(r,'Categoría','Categoria','categoria');
+    const qty    = getQty(r);
+    const min    = getMin(r);
+    const precio = Number(getCol(r,'P. Venta (ARS)','P. Venta (USD)','Precio','precio') || 0);
     return `<tr>
-      <td>${prod}</td>
-      <td class="muted-cell">${cat}</td>
+      <td>${prod || '—'}</td>
+      <td class="muted-cell">${cat || '—'}</td>
       <td style="text-align:center;font-weight:600">${qty}</td>
       <td>${stockBadge(qty, min)}</td>
       <td class="money-cell">${precio > 0 ? fmtMoney(precio) : '—'}</td>
