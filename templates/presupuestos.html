@@ -236,20 +236,22 @@ async function buscarCliente() {
   if (v.length < 10) { document.getElementById('cuit-status').textContent = '⚠️ CUIT inválido'; return; }
   document.getElementById('cuit-status').textContent = '🔍 Buscando...';
 
-  // 2. Consultar TangoFactura
   try {
-    const res = await fetch(`https://afip.tangofactura.com/Rest/GetContribuyenteFull?cuit=${v}`);
+    const res = await fetch(`/api/buscar-cliente?q=${v}`);
     const json = await res.json();
-    if (json && json.Contribuyente && json.Contribuyente.Nombre) {
-      const c = json.Contribuyente;
-      document.getElementById('cliente').value = c.Nombre;
-      document.getElementById('condicion-iva').value = c.CondicionIva || 'Responsable Inscripto';
-      document.getElementById('campo-condicion').style.display = 'flex';
-      if (c.Domicilio) {
-        document.getElementById('domicilio-cliente').value = c.Domicilio;
+    if (json && json.ok && json.cliente) {
+      const c = json.cliente;
+      document.getElementById('cliente').value = c.nombre || '';
+      if (c.condicion_iva) {
+        document.getElementById('condicion-iva').value = c.condicion_iva;
+        document.getElementById('campo-condicion').style.display = 'flex';
+      }
+      if (c.domicilio) {
+        document.getElementById('domicilio-cliente').value = c.domicilio;
         document.getElementById('campo-domicilio').style.display = 'flex';
       }
-      document.getElementById('cuit-status').textContent = '✅ Encontrado';
+      const fuente = json.fuente === 'afip' ? '✅ Encontrado (AFIP)' : '✅ Encontrado en clientes';
+      document.getElementById('cuit-status').textContent = fuente;
       return;
     }
   } catch {}
