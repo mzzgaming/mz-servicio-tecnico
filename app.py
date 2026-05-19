@@ -670,15 +670,30 @@ def generar_html_presupuesto(data):
     notas = data.get("notas", "")
 
     subtotal = sum(float(i.get("cantidad",0)) * float(i.get("precio",0)) * (1 - float(i.get("descuento",0))/100) for i in items)
-    iva_pct = 21 if "A" in tipo else 0
-    iva_monto = subtotal * iva_pct / 100
+    iva_monto = sum(float(i.get("cantidad",0)) * float(i.get("precio",0)) * (1 - float(i.get("descuento",0))/100) * float(i.get("iva",0))/100 for i in items)
     total = subtotal + iva_monto
+
+    # Desglose de IVA agrupado por alícuota
+    iva_desglose = {}
+    for i in items:
+        cant = float(i.get("cantidad",0))
+        precio_i = float(i.get("precio",0))
+        desc_i = float(i.get("descuento",0))
+        rate = float(i.get("iva",0))
+        if rate > 0:
+            base = cant * precio_i * (1 - desc_i/100)
+            iva_desglose[rate] = iva_desglose.get(rate, 0) + base * rate / 100
+    iva_rows_html = "".join(
+        f"<div class='totales-row'><span>IVA {r:.1f}%:</span><span>${m:,.2f}</span></div>"
+        for r, m in sorted(iva_desglose.items())
+    )
 
     items_html = ""
     for i, item in enumerate(items, 1):
         cant = float(item.get("cantidad", 0))
         precio = float(item.get("precio", 0))
         desc = float(item.get("descuento", 0))
+        iva_item = float(item.get("iva", 0))
         subtot = cant * precio * (1 - desc/100)
         items_html += f"""
         <tr>
@@ -686,6 +701,7 @@ def generar_html_presupuesto(data):
             <td>{item.get("descripcion","")}</td>
             <td style="text-align:center">{cant:.0f}</td>
             <td style="text-align:right">${precio:,.2f}</td>
+            <td style="text-align:center">{iva_item:.1f}%</td>
             <td style="text-align:center">{desc:.0f}%</td>
             <td style="text-align:right">${subtot:,.2f}</td>
         </tr>"""
@@ -760,6 +776,7 @@ def generar_html_presupuesto(data):
       <th>#</th><th>Descripción</th>
       <th style="text-align:center">Cant.</th>
       <th style="text-align:right">P. Unit.</th>
+      <th style="text-align:center">IVA%</th>
       <th style="text-align:center">Desc.</th>
       <th style="text-align:right">Subtotal</th>
     </tr>
@@ -770,7 +787,7 @@ def generar_html_presupuesto(data):
 <div class="totales">
   <div class="totales-box">
     <div class="totales-row"><span>Subtotal:</span><span>${subtotal:,.2f}</span></div>
-    {"<div class='totales-row'><span>IVA 21%:</span><span>$" + f"{iva_monto:,.2f}" + "</span></div>" if iva_pct > 0 else ""}
+    {iva_rows_html}
     <div class="totales-row total"><span>TOTAL:</span><span>${total:,.2f}</span></div>
   </div>
 </div>

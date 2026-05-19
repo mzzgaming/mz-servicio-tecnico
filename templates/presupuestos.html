@@ -188,12 +188,13 @@
       <table class="items-table" id="items-table">
         <thead>
           <tr>
-            <th style="width:40%">Descripción</th>
-            <th style="width:10%">Cant.</th>
-            <th style="width:18%">Precio Unit. ($)</th>
-            <th style="width:12%">Desc. %</th>
-            <th style="width:15%">Subtotal</th>
-            <th style="width:5%"></th>
+            <th style="width:32%">Descripción</th>
+            <th style="width:8%">Cant.</th>
+            <th style="width:14%">Precio Unit. ($)</th>
+            <th style="width:9%">IVA</th>
+            <th style="width:9%">Desc. %</th>
+            <th style="width:18%">Subtotal</th>
+            <th style="width:10%"></th>
           </tr>
         </thead>
         <tbody id="items-body"></tbody>
@@ -202,7 +203,7 @@
 
       <div class="totales-box">
         <div class="totales-row"><span>Subtotal:</span><span id="t-subtotal">$0,00</span></div>
-        <div class="totales-row" id="row-iva" style="display:none"><span>IVA 21%:</span><span id="t-iva">$0,00</span></div>
+        <div class="totales-row" id="row-iva" style="display:none"><span>IVA:</span><span id="t-iva">$0,00</span></div>
         <div class="totales-row total"><span>TOTAL:</span><span id="t-total">$0,00</span></div>
       </div>
     </div>
@@ -235,7 +236,6 @@ async function buscarCliente() {
   const v = raw.replace(/\D/g, '');
   if (v.length < 10) { document.getElementById('cuit-status').textContent = '⚠️ CUIT inválido'; return; }
   document.getElementById('cuit-status').textContent = '🔍 Buscando...';
-
   try {
     const res = await fetch(`/api/buscar-cliente?q=${v}`);
     const json = await res.json();
@@ -250,39 +250,80 @@ async function buscarCliente() {
         document.getElementById('domicilio-cliente').value = c.domicilio;
         document.getElementById('campo-domicilio').style.display = 'flex';
       }
-      const fuente = json.fuente === 'afip' ? '✅ Encontrado (AFIP)' : '✅ Encontrado en clientes';
-      document.getElementById('cuit-status').textContent = fuente;
+      document.getElementById('cuit-status').textContent = json.fuente === 'afip' ? '✅ Encontrado (AFIP)' : '✅ Encontrado en clientes';
       return;
     }
   } catch {}
-
   document.getElementById('cuit-status').textContent = '⚠️ No encontrado — ingresá manualmente';
+}
+
+let stockDisponible = [];
+
+async function cargarStock() {
+  try {
+    const res = await fetch('/api/biz/Productos');
+    const json = await res.json();
+    if (json.ok) {
+      stockDisponible = (json.data || []).filter(p => {
+        const nombre = p['Nombre del producto'] || p['Nombre'] || '';
+        const stock = parseInt(p['Stock actual'] || 0);
+        return nombre.trim() !== '' && stock > 0;
+      });
+    }
+  } catch {}
+}
+
+function cargarOpcionesStock(select) {
+  select.innerHTML = '<option value="">— Elegir del stock —</option>';
+  stockDisponible.forEach((p, i) => {
+    const nombre = p['Nombre del producto'] || p['Nombre'] || '';
+    const precio = p['P. Venta (ARS)'] || p['P. Venta'] || 0;
+    const stock = p['Stock actual'] || 0;
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${nombre} (Stock: ${stock})`;
+    opt.dataset.precio = precio;
+    opt.dataset.nombre = nombre;
+    select.appendChild(opt);
+  });
+}
+
+function seleccionarProducto(select) {
+  const idx = select.value;
+  if (idx === '') return;
+  const p = stockDisponible[parseInt(idx)];
+  const tr = select.closest('tr');
+  tr.querySelector('.item-desc').value = p['Nombre del producto'] || p['Nombre'] || '';
+  const precio = parseFloat((p['P. Venta (ARS)'] || p['P. Venta'] || '0').toString().replace(/[^0-9.]/g,'')) || 0;
+  tr.querySelector('.item-precio').value = precio;
+  actualizarTotales();
 }
 
 function agregarItem() {
   const tbody = document.getElementById('items-body');
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text" placeholder="Descripción del producto/servicio" oninput="actualizarTotales()"></td>
-    <td><input type="number" value="1" min="1" style="width:60px" oninput="actualizarTotales()"></td>
-    <td><input type="number" value="0" min="0" step="any" oninput="actualizarTotales()"></td>
-    <td><input type="number" value="0" min="0" max="100" style="width:60px" oninput="actualizarTotales()"></td>
+    <td>
+      <select class="item-stock" onchange="seleccionarProducto(this)" style="background:#0d1017;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;outline:none;width:100%;margin-bottom:4px;">
+        <option value="">— Elegir del stock —</option>
+      </select>
+      <input type="text" class="item-desc" placeholder="O escribí manualmente" oninput="actualizarTotales()" style="background:#0d1017;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;outline:none;width:100%;margin-top:4px;">
+    </td>
+    <td><input type="number" class="item-cant" value="1" min="1" style="width:60px;background:#0d1017;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;outline:none;" oninput="actualizarTotales()"></td>
+    <td><input type="number" class="item-precio" value="0" min="0" step="any" style="width:100px;background:#0d1017;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;outline:none;" oninput="actualizarTotales()"></td>
+    <td>
+      <select class="item-iva" onchange="actualizarTotales()" style="background:#0d1017;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;outline:none;width:80px;">
+        <option value="0">0%</option>
+        <option value="10.5">10.5%</option>
+        <option value="21" selected>21%</option>
+      </select>
+    </td>
+    <td><input type="number" class="item-desc" value="0" min="0" max="100" style="width:60px;background:#0d1017;border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;outline:none;" oninput="actualizarTotales()"></td>
     <td class="subtotal-cell" style="color:var(--success);font-weight:600;padding:8px;">$0,00</td>
     <td><button class="btn-del" onclick="this.closest('tr').remove();actualizarTotales()">🗑</button></td>
   `;
   tbody.appendChild(tr);
-}
-
-function getItems() {
-  return Array.from(document.querySelectorAll('#items-body tr')).map(tr => {
-    const inputs = tr.querySelectorAll('input');
-    return {
-      descripcion: inputs[0].value,
-      cantidad: parseFloat(inputs[1].value) || 0,
-      precio: parseFloat(inputs[2].value) || 0,
-      descuento: parseFloat(inputs[3].value) || 0,
-    };
-  });
+  cargarOpcionesStock(tr.querySelector('.item-stock'));
 }
 
 function fmtMoney(n) {
@@ -290,23 +331,41 @@ function fmtMoney(n) {
 }
 
 function actualizarTotales() {
-  const items = getItems();
   const rows = document.querySelectorAll('#items-body tr');
   let subtotal = 0;
-  items.forEach((item, i) => {
-    const sub = item.cantidad * item.precio * (1 - item.descuento / 100);
+  let iva_total = 0;
+  rows.forEach(tr => {
+    const desc_input = tr.querySelectorAll('input')[0];
+    const cant = parseFloat(tr.querySelector('.item-cant').value) || 0;
+    const precio = parseFloat(tr.querySelector('.item-precio').value) || 0;
+    const iva_pct = parseFloat(tr.querySelector('.item-iva').value) || 0;
+    const desc_inputs = tr.querySelectorAll('input');
+    const desc_pct = parseFloat(desc_inputs[desc_inputs.length-1].value) || 0;
+    const sub = cant * precio * (1 - desc_pct/100);
+    const iva = sub * iva_pct / 100;
     subtotal += sub;
-    const cell = rows[i].querySelector('.subtotal-cell');
+    iva_total += iva;
+    const cell = tr.querySelector('.subtotal-cell');
     if (cell) cell.textContent = fmtMoney(sub);
   });
-  const tipo = document.getElementById('tipo').value;
-  const iva_pct = tipo === 'Presupuesto A' ? 0.21 : 0;
-  const iva = subtotal * iva_pct;
-  const total = subtotal + iva;
+  const total = subtotal + iva_total;
   document.getElementById('t-subtotal').textContent = fmtMoney(subtotal);
-  document.getElementById('t-iva').textContent = fmtMoney(iva);
+  document.getElementById('t-iva').textContent = fmtMoney(iva_total);
   document.getElementById('t-total').textContent = fmtMoney(total);
-  document.getElementById('row-iva').style.display = iva_pct > 0 ? 'flex' : 'none';
+  document.getElementById('row-iva').style.display = iva_total > 0 ? 'flex' : 'none';
+}
+
+function getItems() {
+  const rows = document.querySelectorAll('#items-body tr');
+  return Array.from(rows).map(tr => {
+    const cant = parseFloat(tr.querySelector('.item-cant').value) || 0;
+    const precio = parseFloat(tr.querySelector('.item-precio').value) || 0;
+    const iva_pct = parseFloat(tr.querySelector('.item-iva').value) || 0;
+    const inputs = tr.querySelectorAll('input');
+    const desc_pct = parseFloat(inputs[inputs.length-1].value) || 0;
+    const descripcion = tr.querySelector('.item-desc') ? tr.querySelector('.item-desc').value : '';
+    return { descripcion, cantidad: cant, precio, iva: iva_pct, descuento: desc_pct };
+  });
 }
 
 function getDatos() {
@@ -381,6 +440,7 @@ function compartirWhatsApp() {
   window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
 }
 
+cargarStock();
 agregarItem();
 </script>
 </body>
