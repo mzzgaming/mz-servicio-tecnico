@@ -1,7 +1,8 @@
 import os
 import json
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template
+from functools import wraps
+from flask import Flask, request, jsonify, render_template, Response
 import gspread
 from google.oauth2.service_account import Credentials
 import requests
@@ -23,6 +24,23 @@ SHEET_ID          = os.environ.get("SHEET_ID", "")
 BUSINESS_SHEET_ID = os.environ.get("BUSINESS_SHEET_ID", "1FHEBuzVEkpg_w8dDMP_Y1YeZBtUprtG9")
 BOT_TOKEN         = os.environ.get("BOT_TOKEN", "")
 WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "mzgaming2024")
+
+def check_auth(username, password):
+    user = os.environ.get("DASHBOARD_USER", "mzgaming")
+    pwd = os.environ.get("DASHBOARD_PASSWORD", "7799")
+    return username == user and password == pwd
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return Response(
+                'Acceso denegado', 401,
+                {'WWW-Authenticate': 'Basic realm="MZ GAMING Dashboard"'}
+            )
+        return f(*args, **kwargs)
+    return decorated
 
 SCOPES = [
     "https://spreadsheets.google.com/feeds",
@@ -72,10 +90,12 @@ def set_webhook(base_url):
 
 # ─── RUTAS WEB ─────────────────────────────────────────────────────────────────
 @app.route("/")
+@requires_auth
 def index():
     return render_template("index.html")
 
 @app.route("/orders")
+@requires_auth
 def orders_page():
     return render_template("orders.html")
 
