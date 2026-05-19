@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime
 from functools import wraps
-from flask import Flask, request, jsonify, render_template, Response
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 import gspread
 from google.oauth2.service_account import Credentials
 import requests
@@ -27,22 +27,34 @@ BUSINESS_SHEET_ID = os.environ.get("BUSINESS_SHEET_ID", "1FHEBuzVEkpg_w8dDMP_Y1Y
 BOT_TOKEN         = os.environ.get("BOT_TOKEN", "")
 WEBHOOK_SECRET    = os.environ.get("WEBHOOK_SECRET", "mzgaming2024")
 
-def check_auth(username, password):
-    user = os.environ.get("DASHBOARD_USER", "mzgaming")
-    pwd = os.environ.get("DASHBOARD_PASSWORD", "7799")
-    return username == user and password == pwd
+SECRET_KEY = os.environ.get("SECRET_KEY", "mzgaming_secret_2024")
+app.secret_key = SECRET_KEY
 
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not check_auth(auth.username, auth.password):
-            return Response(
-                'Acceso denegado', 401,
-                {'WWW-Authenticate': 'Basic realm="MZ GAMING Dashboard"'}
-            )
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        user = request.form.get("username", "")
+        pwd = request.form.get("password", "")
+        if user == os.environ.get("DASHBOARD_USER", "mzgaming") and pwd == os.environ.get("DASHBOARD_PASSWORD", "7799"):
+            session['logged_in'] = True
+            return redirect(url_for('orders_page'))
+        else:
+            error = "Usuario o contraseña incorrectos"
+    return render_template("login.html", error=error)
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
 SCOPES = [
     "https://spreadsheets.google.com/feeds",
