@@ -201,6 +201,10 @@
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
       Nuevo Cliente
     </button>
+    <button class="nav-item" data-sec="nuevo-producto" onclick="showSection('nuevo-producto',this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      Nuevo Producto
+    </button>
   </aside>
 
   <!-- ═══ MAIN ═══ -->
@@ -565,6 +569,69 @@
           </div>
           <button onclick="submitCliente()" style="margin-top:24px;width:100%;padding:14px;background:var(--accent);color:#001a1f;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;" id="btn-cliente">
             👤 Agregar Cliente
+          </button>
+        </div>
+      </div>
+
+
+      <!-- ══ SECCIÓN: NUEVO PRODUCTO ══ -->
+      <div id="sec-nuevo-producto" class="section">
+        <div class="page-header">
+          <div><h1>Nuevo Producto</h1><p>Agregar producto al catálogo y stock</p></div>
+        </div>
+        <div class="card" style="max-width:720px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;">
+          <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Código</label>
+              <input type="text" id="p-codigo" placeholder="Ej: SSD-001" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Nombre *</label>
+              <input type="text" id="p-nombre" placeholder="Ej: SSD Kingston 480GB" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Categoría *</label>
+              <select id="p-categoria" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="">— Seleccioná —</option>
+                <option value="Almacenamiento">💾 Almacenamiento (SSD/HDD)</option>
+                <option value="Memorias RAM">🧠 Memorias RAM</option>
+                <option value="Motherboards">🖥️ Motherboards</option>
+                <option value="Microprocesadores">🔴 Microprocesadores</option>
+                <option value="Placa de Video">🎮 Placa de Video</option>
+                <option value="Fuentes">⚡ Fuentes</option>
+                <option value="Gabinetes">🗄️ Gabinetes</option>
+                <option value="CPU Cooler">❄️ CPU Cooler / Water</option>
+                <option value="Periféricos">🖱️ Periféricos</option>
+                <option value="Auriculares">🎧 Auriculares</option>
+                <option value="Mousepad">🖱️ Mousepad</option>
+                <option value="Insumos">🔧 Insumos</option>
+                <option value="Combo / Kit">🎮 Combo / Kit</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Marca</label>
+              <input type="text" id="p-marca" placeholder="Ej: Kingston, Samsung, etc." style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Stock actual *</label>
+              <input type="number" id="p-stock-actual" placeholder="0" min="0" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Stock mínimo</label>
+              <input type="number" id="p-stock-minimo" placeholder="1" min="0" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Precio Compra (USD)</label>
+              <input type="number" id="p-compra-usd" placeholder="0" min="0" step="any" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Precio Venta (USD)</label>
+              <input type="number" id="p-venta-usd" placeholder="0" min="0" step="any" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+          </div>
+          <button onclick="submitProducto()" style="margin-top:24px;width:100%;padding:14px;background:var(--accent);color:#001a1f;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;" id="btn-producto">
+            📦 Agregar Producto
           </button>
         </div>
       </div>
@@ -1223,6 +1290,24 @@ async function submitCliente() {
   } catch(e) { showToast(false, 'Error de conexión', e.message); }
   btn.disabled = false; btn.textContent = '👤 Agregar Cliente';
 }
+
+// ── SUBMIT PRODUCTO ───────────────────────────────────────────────────────
+  async function submitProducto() {
+    const nombre = document.getElementById('p-nombre').value.trim();
+    const categoria = document.getElementById('p-categoria').value;
+    const stock_actual = document.getElementById('p-stock-actual').value;
+    if (!nombre || !categoria || stock_actual === '') { showToast(false, 'Campos requeridos', 'Completá nombre, categoría y stock actual'); return; }
+    const btn = document.getElementById('btn-producto');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    try {
+      const res = await fetch('/api/biz/Productos', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ codigo: document.getElementById('p-codigo').value, nombre, categoria, marca: document.getElementById('p-marca').value, stock_actual, stock_minimo: document.getElementById('p-stock-minimo').value, precio_compra_usd: document.getElementById('p-compra-usd').value, precio_venta_usd: document.getElementById('p-venta-usd').value }) });
+      const json = await res.json();
+      if (json.ok) { showToast(true, 'Producto agregado', nombre); document.getElementById('p-codigo').value=''; document.getElementById('p-nombre').value=''; document.getElementById('p-marca').value=''; document.getElementById('p-stock-actual').value=''; document.getElementById('p-stock-minimo').value=''; document.getElementById('p-compra-usd').value=''; document.getElementById('p-venta-usd').value=''; loaded['stock_data']=false; }
+      else showToast(false, 'Error', json.error);
+    } catch(e) { showToast(false, 'Error de conexión', e.message); }
+    btn.disabled = false; btn.textContent = '📦 Agregar Producto';
+  }
 
 // Setear fechas de hoy por defecto
 const hoy = new Date().toISOString().split('T')[0];

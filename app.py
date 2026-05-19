@@ -432,6 +432,34 @@ def add_cliente():
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+@app.route("/api/biz/Productos", methods=["POST"])
+def add_producto():
+    try:
+        data = request.json
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet("Productos")
+        row = [
+            data.get("codigo", ""),
+            data.get("nombre", ""),
+            data.get("categoria", ""),
+            data.get("marca", ""),
+            data.get("stock_actual", ""),
+            data.get("stock_minimo", ""),
+            data.get("precio_compra_usd", ""),
+            data.get("precio_venta_usd", ""),
+            "",
+            data.get("stock_actual", ""),
+            "",
+            ""
+        ]
+        ws.append_row(row)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 # ─── DEBUG (temporal) ──────────────────────────────────────────────────────────
 @app.route("/api/biz/<sheet_name>/raw")
 def get_biz_raw(sheet_name):
