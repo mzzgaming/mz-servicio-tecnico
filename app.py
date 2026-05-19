@@ -326,6 +326,112 @@ def get_biz_sheet(sheet_name):
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
 
+# ─── BUSINESS SHEETS — ESCRITURA ───────────────────────────────────────────────
+@app.route("/api/biz/Ventas", methods=["POST"])
+def add_venta():
+    try:
+        data = request.json
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet("Ventas")
+        row = [
+            data.get("fecha", ""),
+            data.get("cliente", ""),
+            data.get("descripcion", ""),
+            data.get("importe", ""),
+            data.get("estado", "Pendiente"),
+            data.get("medio_pago", ""),
+            data.get("tipo_servicio", ""),
+            data.get("producto", ""),
+            data.get("cantidad", ""),
+            "",
+            data.get("abonado", ""),
+            "",
+            data.get("facturado", "No"),
+            data.get("tipo_factura", ""),
+            ""
+        ]
+        ws.append_row(row)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/api/biz/Compras", methods=["POST"])
+def add_compra():
+    try:
+        data = request.json
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet("Compras")
+        row = [
+            data.get("fecha", ""),
+            data.get("descripcion", ""),
+            data.get("proveedor", ""),
+            data.get("importe_usd", ""),
+            data.get("estado", "Pendiente"),
+            data.get("notas", ""),
+            data.get("medio_pago", ""),
+            data.get("producto", ""),
+            data.get("cantidad", ""),
+            "",
+            data.get("importe_ars", "")
+        ]
+        ws.append_row(row)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/api/biz/Gastos", methods=["POST"])
+def add_gasto():
+    try:
+        data = request.json
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet("Gastos")
+        row = [
+            data.get("fecha", ""),
+            data.get("categoria", ""),
+            data.get("importe", ""),
+            data.get("descripcion", ""),
+            data.get("medio_pago", ""),
+            data.get("responsable", "")
+        ]
+        ws.append_row(row)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/api/biz/Clientes", methods=["POST"])
+def add_cliente():
+    try:
+        data = request.json
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS_JSON", "{}")
+        creds_dict = json.loads(creds_json)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+        client = gspread.authorize(creds)
+        ws = client.open_by_key(BUSINESS_SHEET_ID).worksheet("Clientes")
+        row = [
+            data.get("cliente", ""),
+            data.get("telefono", ""),
+            data.get("tipo_cliente", ""),
+            data.get("abono", ""),
+            data.get("plan", ""),
+            data.get("estado", "Activo"),
+            "",
+            "",
+            data.get("notas", "")
+        ]
+        ws.append_row(row)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
 # ─── DEBUG (temporal) ──────────────────────────────────────────────────────────
 @app.route("/api/biz/<sheet_name>/raw")
 def get_biz_raw(sheet_name):

@@ -182,6 +182,25 @@
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       Clientes
     </button>
+
+    <div class="nav-sep"></div>
+    <div class="nav-group">Cargar datos</div>
+    <button class="nav-item" data-sec="nueva-venta" onclick="showSection('nueva-venta',this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Nueva Venta
+    </button>
+    <button class="nav-item" data-sec="nueva-compra" onclick="showSection('nueva-compra',this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      Nueva Compra
+    </button>
+    <button class="nav-item" data-sec="nuevo-gasto" onclick="showSection('nuevo-gasto',this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      Nuevo Gasto
+    </button>
+    <button class="nav-item" data-sec="nuevo-cliente" onclick="showSection('nuevo-cliente',this)">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+      Nuevo Cliente
+    </button>
   </aside>
 
   <!-- ═══ MAIN ═══ -->
@@ -325,6 +344,230 @@
         <div class="loading"><div class="spin"></div></div>
       </div>
     </div><!-- /sec-clientes -->
+
+
+      <!-- ══ SECCIÓN: NUEVA VENTA ══ -->
+      <div id="sec-nueva-venta" class="section">
+        <div class="page-header">
+          <div><h1>Nueva Venta</h1><p>Registrar venta en el spreadsheet de negocio</p></div>
+        </div>
+        <div class="card" style="max-width:720px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;">
+          <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Fecha *</label>
+              <input type="date" id="v-fecha" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Cliente *</label>
+              <input type="text" id="v-cliente" placeholder="Nombre del cliente" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;grid-column:1/-1;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Descripción *</label>
+              <input type="text" id="v-descripcion" placeholder="Ej: Venta RTX 4060, servicio técnico, etc." style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Importe ($) *</label>
+              <input type="number" id="v-importe" placeholder="0" min="0" step="any" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Estado</label>
+              <select id="v-estado" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="Pendiente">⏳ Pendiente</option>
+                <option value="Pagado">✅ Pagado</option>
+                <option value="Pago Parcial">🔸 Pago Parcial</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Medio de Pago</label>
+              <select id="v-medio" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="">— Seleccioná —</option>
+                <option value="Efectivo">💵 Efectivo</option>
+                <option value="Santander">🏦 Santander</option>
+                <option value="Mercado Pago">💙 Mercado Pago</option>
+                <option value="Transferencia">🔄 Transferencia</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Tipo de Servicio</label>
+              <select id="v-tipo-servicio" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="">— Seleccioná —</option>
+                <option value="Venta producto">🛒 Venta producto</option>
+                <option value="Servicio técnico">🔧 Servicio técnico</option>
+                <option value="Armado PC">🖥️ Armado PC</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="submitVenta()" style="margin-top:24px;width:100%;padding:14px;background:var(--accent);color:#001a1f;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;" id="btn-venta">
+            💰 Registrar Venta
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ SECCIÓN: NUEVA COMPRA ══ -->
+      <div id="sec-nueva-compra" class="section">
+        <div class="page-header">
+          <div><h1>Nueva Compra</h1><p>Registrar compra de productos/insumos</p></div>
+        </div>
+        <div class="card" style="max-width:720px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;">
+          <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Fecha *</label>
+              <input type="date" id="c-fecha" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Proveedor *</label>
+              <input type="text" id="c-proveedor" placeholder="Nombre del proveedor" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;grid-column:1/-1;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Descripción *</label>
+              <input type="text" id="c-descripcion" placeholder="Ej: 10x SSD Kingston 480GB" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Importe (USD)</label>
+              <input type="number" id="c-importe-usd" placeholder="0" min="0" step="any" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Importe (ARS)</label>
+              <input type="number" id="c-importe-ars" placeholder="0" min="0" step="any" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Estado</label>
+              <select id="c-estado" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="Pendiente">⏳ Pendiente</option>
+                <option value="Pagado">✅ Pagado</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Medio de Pago</label>
+              <select id="c-medio" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="">— Seleccioná —</option>
+                <option value="Efectivo">💵 Efectivo</option>
+                <option value="Santander">🏦 Santander</option>
+                <option value="Mercado Pago">💙 Mercado Pago</option>
+                <option value="Transferencia">🔄 Transferencia</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Cantidad</label>
+              <input type="number" id="c-cantidad" placeholder="1" min="1" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;grid-column:1/-1;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Notas</label>
+              <input type="text" id="c-notas" placeholder="Observaciones opcionales" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+          </div>
+          <button onclick="submitCompra()" style="margin-top:24px;width:100%;padding:14px;background:var(--accent);color:#001a1f;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;" id="btn-compra">
+            🛒 Registrar Compra
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ SECCIÓN: NUEVO GASTO ══ -->
+      <div id="sec-nuevo-gasto" class="section">
+        <div class="page-header">
+          <div><h1>Nuevo Gasto</h1><p>Registrar gasto operativo</p></div>
+        </div>
+        <div class="card" style="max-width:720px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;">
+          <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Fecha *</label>
+              <input type="date" id="g-fecha" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Categoría *</label>
+              <select id="g-categoria" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="">— Seleccioná —</option>
+                <option value="Sueldos">👷 Sueldos</option>
+                <option value="Movilidad">🚗 Movilidad</option>
+                <option value="Insumos">📦 Insumos</option>
+                <option value="Servicios">💡 Servicios</option>
+                <option value="Alquiler">🏠 Alquiler</option>
+                <option value="Marketing">📣 Marketing</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;grid-column:1/-1;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Descripción *</label>
+              <input type="text" id="g-descripcion" placeholder="Descripción del gasto" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Importe ($) *</label>
+              <input type="number" id="g-importe" placeholder="0" min="0" step="any" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Medio de Pago</label>
+              <select id="g-medio" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="">— Seleccioná —</option>
+                <option value="Efectivo">💵 Efectivo</option>
+                <option value="Santander">🏦 Santander</option>
+                <option value="Mercado Pago">💙 Mercado Pago</option>
+                <option value="Transferencia">🔄 Transferencia</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Responsable</label>
+              <select id="g-responsable" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="Martin">Martin</option>
+                <option value="Técnico">Técnico</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="submitGasto()" style="margin-top:24px;width:100%;padding:14px;background:var(--accent);color:#001a1f;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;" id="btn-gasto">
+            📋 Registrar Gasto
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ SECCIÓN: NUEVO CLIENTE ══ -->
+      <div id="sec-nuevo-cliente" class="section">
+        <div class="page-header">
+          <div><h1>Nuevo Cliente</h1><p>Agregar cliente a la base de datos</p></div>
+        </div>
+        <div class="card" style="max-width:720px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;">
+          <div class="form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Nombre *</label>
+              <input type="text" id="cl-nombre" placeholder="Nombre y apellido" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Teléfono</label>
+              <input type="text" id="cl-telefono" placeholder="Ej: 387-4123456" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Tipo de Cliente</label>
+              <select id="cl-tipo" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="Regular">Regular</option>
+                <option value="Frecuente">Frecuente</option>
+                <option value="Abono">Abono</option>
+                <option value="Empresa">Empresa</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Estado</label>
+              <select id="cl-estado" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+                <option value="Activo">✅ Activo</option>
+                <option value="Inactivo">❌ Inactivo</option>
+              </select>
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Abono mensual ($)</label>
+              <input type="number" id="cl-abono" placeholder="0" min="0" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Plan</label>
+              <input type="text" id="cl-plan" placeholder="Ej: Básico, Premium, etc." style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+            <div class="field" style="display:flex;flex-direction:column;gap:7px;grid-column:1/-1;">
+              <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Notas</label>
+              <input type="text" id="cl-notas" placeholder="Observaciones opcionales" style="background:#0d1017;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;width:100%;">
+            </div>
+          </div>
+          <button onclick="submitCliente()" style="margin-top:24px;width:100%;padding:14px;background:var(--accent);color:#001a1f;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;" id="btn-cliente">
+            👤 Agregar Cliente
+          </button>
+        </div>
+      </div>
 
   </main>
 </div><!-- /layout -->
@@ -893,6 +1136,97 @@ showSection(initSection);
 setInterval(() => {
   if (document.querySelector('#sec-ordenes.active')) loadOrders();
 }, 30000);
+
+// ── TOAST HELPER ──────────────────────────────────────────────────────────
+function showToast(ok, title, msg) {
+  let t = document.getElementById('toast-form');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-form';
+    t.style.cssText = 'position:fixed;bottom:28px;right:28px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:12px;font-size:14px;min-width:280px;z-index:999;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.style.borderLeft = ok ? '3px solid var(--success)' : '3px solid var(--danger)';
+  t.innerHTML = `<span style="font-size:20px">${ok ? '✅' : '❌'}</span><div><strong style="display:block;margin-bottom:2px">${title}</strong><span style="color:var(--muted);font-size:12px">${msg}</span></div>`;
+  t.style.transform = 'translateY(0)'; t.style.opacity = '1';
+  setTimeout(() => { t.style.transform = 'translateY(20px)'; t.style.opacity = '0'; }, 3500);
+}
+
+// ── SUBMIT VENTA ──────────────────────────────────────────────────────────
+async function submitVenta() {
+  const fecha = document.getElementById('v-fecha').value;
+  const cliente = document.getElementById('v-cliente').value.trim();
+  const descripcion = document.getElementById('v-descripcion').value.trim();
+  const importe = document.getElementById('v-importe').value;
+  if (!fecha || !cliente || !descripcion || !importe) { showToast(false, 'Campos requeridos', 'Completá fecha, cliente, descripción e importe'); return; }
+  const btn = document.getElementById('btn-venta');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const res = await fetch('/api/biz/Ventas', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ fecha, cliente, descripcion, importe, estado: document.getElementById('v-estado').value, medio_pago: document.getElementById('v-medio').value, tipo_servicio: document.getElementById('v-tipo-servicio').value }) });
+    const json = await res.json();
+    if (json.ok) { showToast(true, 'Venta registrada', `${cliente} — $${importe}`); document.getElementById('v-cliente').value=''; document.getElementById('v-descripcion').value=''; document.getElementById('v-importe').value=''; loaded['ventas_data']=false; loaded['resumen_data']=false; }
+    else showToast(false, 'Error', json.error);
+  } catch(e) { showToast(false, 'Error de conexión', e.message); }
+  btn.disabled = false; btn.textContent = '💰 Registrar Venta';
+}
+
+// ── SUBMIT COMPRA ─────────────────────────────────────────────────────────
+async function submitCompra() {
+  const fecha = document.getElementById('c-fecha').value;
+  const proveedor = document.getElementById('c-proveedor').value.trim();
+  const descripcion = document.getElementById('c-descripcion').value.trim();
+  if (!fecha || !proveedor || !descripcion) { showToast(false, 'Campos requeridos', 'Completá fecha, proveedor y descripción'); return; }
+  const btn = document.getElementById('btn-compra');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const res = await fetch('/api/biz/Compras', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ fecha, proveedor, descripcion, importe_usd: document.getElementById('c-importe-usd').value, importe_ars: document.getElementById('c-importe-ars').value, estado: document.getElementById('c-estado').value, medio_pago: document.getElementById('c-medio').value, cantidad: document.getElementById('c-cantidad').value, notas: document.getElementById('c-notas').value }) });
+    const json = await res.json();
+    if (json.ok) { showToast(true, 'Compra registrada', `${proveedor} — ${descripcion}`); document.getElementById('c-proveedor').value=''; document.getElementById('c-descripcion').value=''; document.getElementById('c-importe-usd').value=''; document.getElementById('c-importe-ars').value=''; }
+    else showToast(false, 'Error', json.error);
+  } catch(e) { showToast(false, 'Error de conexión', e.message); }
+  btn.disabled = false; btn.textContent = '🛒 Registrar Compra';
+}
+
+// ── SUBMIT GASTO ──────────────────────────────────────────────────────────
+async function submitGasto() {
+  const fecha = document.getElementById('g-fecha').value;
+  const categoria = document.getElementById('g-categoria').value;
+  const descripcion = document.getElementById('g-descripcion').value.trim();
+  const importe = document.getElementById('g-importe').value;
+  if (!fecha || !categoria || !descripcion || !importe) { showToast(false, 'Campos requeridos', 'Completá todos los campos obligatorios'); return; }
+  const btn = document.getElementById('btn-gasto');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const res = await fetch('/api/biz/Gastos', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ fecha, categoria, descripcion, importe, medio_pago: document.getElementById('g-medio').value, responsable: document.getElementById('g-responsable').value }) });
+    const json = await res.json();
+    if (json.ok) { showToast(true, 'Gasto registrado', `${categoria} — $${importe}`); document.getElementById('g-descripcion').value=''; document.getElementById('g-importe').value=''; loaded['resumen_data']=false; }
+    else showToast(false, 'Error', json.error);
+  } catch(e) { showToast(false, 'Error de conexión', e.message); }
+  btn.disabled = false; btn.textContent = '📋 Registrar Gasto';
+}
+
+// ── SUBMIT CLIENTE ────────────────────────────────────────────────────────
+async function submitCliente() {
+  const nombre = document.getElementById('cl-nombre').value.trim();
+  if (!nombre) { showToast(false, 'Campo requerido', 'Ingresá el nombre del cliente'); return; }
+  const btn = document.getElementById('btn-cliente');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const res = await fetch('/api/biz/Clientes', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ cliente: nombre, telefono: document.getElementById('cl-telefono').value, tipo_cliente: document.getElementById('cl-tipo').value, estado: document.getElementById('cl-estado').value, abono: document.getElementById('cl-abono').value, plan: document.getElementById('cl-plan').value, notas: document.getElementById('cl-notas').value }) });
+    const json = await res.json();
+    if (json.ok) { showToast(true, 'Cliente agregado', nombre); document.getElementById('cl-nombre').value=''; document.getElementById('cl-telefono').value=''; document.getElementById('cl-abono').value=''; document.getElementById('cl-plan').value=''; document.getElementById('cl-notas').value=''; loaded['clientes_data']=false; }
+    else showToast(false, 'Error', json.error);
+  } catch(e) { showToast(false, 'Error de conexión', e.message); }
+  btn.disabled = false; btn.textContent = '👤 Agregar Cliente';
+}
+
+// Setear fechas de hoy por defecto
+const hoy = new Date().toISOString().split('T')[0];
+['v-fecha','c-fecha','g-fecha'].forEach(id => { const el = document.getElementById(id); if(el) el.value = hoy; });
 </script>
 </body>
 </html>
