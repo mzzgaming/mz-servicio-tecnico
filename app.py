@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import base64
 import io
 from datetime import datetime, timedelta
@@ -547,22 +548,44 @@ def buscar_cliente():
     except Exception:
         pass
 
-    # 2. Consultar TangoFactura (solo si q parece un CUIT)
+    # 2. Scrape cuitonline.com (solo si q parece un CUIT)
     if q.isdigit() and len(q) >= 10:
         try:
+            hdrs = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'es-AR,es;q=0.9',
+            }
             r = requests.get(
-                f"https://afip.tangofactura.com/Rest/GetContribuyenteFull?cuit={q}",
-                timeout=5
+                f"https://www.cuitonline.com/{q}",
+                headers=hdrs,
+                timeout=8,
+                allow_redirects=True
             )
-            data = r.json()
-            if data and data.get("Contribuyente") and data["Contribuyente"].get("Nombre"):
-                c = data["Contribuyente"]
-                return jsonify({"ok": True, "fuente": "afip", "cliente": {
-                    "nombre": c.get("Nombre", ""),
-                    "tipo": c.get("CondicionIva", "Consumidor Final"),
-                    "domicilio": c.get("Domicilio", ""),
-                    "condicion_iva": c.get("CondicionIva", "Consumidor Final"),
-                }})
+            if r.status_code == 200:
+                html = r.text
+                nombre = None
+                # Intentar extraer denominación de múltiples patrones
+                for pat in [
+                    r'class=["\']denominacion["\'][^>]*>([^<]+)<',
+                    r'<h1[^>]*>([^<]{4,80})</h1>',
+                    r'"nombre"\s*:\s*"([^"]{4,80})"',
+                    r'"denominacion"\s*:\s*"([^"]{4,80})"',
+                ]:
+                    m = re.search(pat, html, re.IGNORECASE)
+                    if m:
+                        candidato = m.group(1).strip()
+                        # Descartar si parece un título de sitio web
+                        if candidato and len(candidato) > 3 and 'cuitonline' not in candidato.lower():
+                            nombre = candidato
+                            break
+                if nombre:
+                    return jsonify({"ok": True, "fuente": "afip", "cliente": {
+                        "nombre": nombre,
+                        "tipo": "Consumidor Final",
+                        "domicilio": "",
+                        "condicion_iva": "Consumidor Final",
+                    }})
         except Exception:
             pass
 
